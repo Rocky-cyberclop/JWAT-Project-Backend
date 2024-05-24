@@ -1,0 +1,28 @@
+version: '3.1'
+
+services:
+
+  # mongo:
+  #   image: mongo
+  #   ports:
+  #     - 27017:27017
+  #   restart: always
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: admin
+  #   volumes:
+  #     - mongo-data:/data/db
+
+  app:
+    image: rockyoperation/hao-nest-app:1.0
+    ports:
+      - 3000:3009
+    environment:
+      DATABASE_URI: mongodb://admin:admin@mongo:27017/?authMechanism=DEFAULT
+      PORT: 3009
+    # depends_on:
+    #   - mongo
+
+# volumes:
+#   mongo-data:
+  
