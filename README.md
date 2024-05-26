@@ -1,11 +1,13 @@
 # How to run this app:
 
-##  First create an env file contains
+## First create an .env file contains
   ```
     NODE_ENV="development" or "production"
   ```
 
-##  Run migration:
+## Second create database named JWAT-Knowledge-Sharing
+
+## Then run migration:
 
   Generate if needed (Optional):
   ```
