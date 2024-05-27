@@ -9,8 +9,7 @@ import * as path from 'path';
  * @returns DataSourceOptions
  */
 function dynamicConfigDatabaseMyself(): DataSourceOptions {
-  const envFilePath = path.resolve(process.cwd(), `.env.${dotenv.config().parsed.NODE_ENV}`);
-  console.warn("This is from data source file!")
+  const envFilePath = path.resolve(process.cwd(), `.env.${dotenv.config().parsed.NODE_ENV}.local`);
   dotenv.config({ path: envFilePath });
   return {
     type: 'postgres',

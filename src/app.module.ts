@@ -11,7 +11,7 @@ require('dotenv').config()
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: [`${process.cwd()}/.env.${process.env.NODE_ENV}`],
+      envFilePath: [`${process.cwd()}/.env.${process.env.NODE_ENV}.local`],
       isGlobal: true,
       load: [configuration],
     }),

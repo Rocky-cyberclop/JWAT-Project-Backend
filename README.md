@@ -4,8 +4,19 @@
   ```
     NODE_ENV="development" or "production"
   ```
+## Secound create an .env.development.local file contains
+  ```
+    PORT=3000
 
-## Second create database named JWAT-Knowledge-Sharing
+    # Database connection
+    DB_NAME="{your db name}"
+    DB_HOST="{your db host}"
+    DB_PORT={your db port}
+    DB_USERNAME="{your db name}"
+    DB_PASSWORD="{your db password}"
+  ```
+
+## Third create database named JWAT-Knowledge-Sharing
 
 ## Then run migration:
 
