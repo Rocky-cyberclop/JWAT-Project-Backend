@@ -21,6 +21,9 @@ function dynamicConfigDatabaseMyself(): DataSourceOptions {
     entities: ['dist/**/*.entity.js'],
     synchronize: false,
     migrations: ['dist/database/migrations/*.js'],
+    ssl: {
+      rejectUnauthorized: false,
+    },
   }
 }
 
