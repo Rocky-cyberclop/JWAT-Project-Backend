@@ -7,6 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 import { Gender } from '../enums/gender.enum';
+import { Role } from '../enums/roles.enum';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -15,7 +16,7 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsString()
-  @IsPhoneNumber()
+  @IsPhoneNumber('VN')
   phoneNumber: string;
 
   @IsNotEmpty()
@@ -41,4 +42,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   password: string;
+
+  roles: Role;
 }

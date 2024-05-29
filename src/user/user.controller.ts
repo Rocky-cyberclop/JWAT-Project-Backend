@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Roles } from 'src/decorator/roles.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
+import { Role } from './enums/roles.enum';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -8,6 +10,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('create')
+  @Roles(Role.ADMIN)
   create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.userService.create(createUserDto);
   }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -12,9 +12,24 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    const userExist = await this.userRepository.findOne({
+      where: { username: createUserDto.username },
+    });
+    // if (userExist) {
+    //   throw new ConflictException('Username already exists');
+    // }
     const newUser = this.userRepository.create(createUserDto);
-    await this.userRepository.save(newUser);
-    return newUser;
+
+    try {
+      return await this.userRepository.save(newUser);
+    } catch (error) {
+      if (error.code === '23505') {
+        // PostgreSQL unique violation error code
+        throw new ConflictException('Duplicate key value violates unique constraint');
+      } else {
+        throw error;
+      }
+    }
   }
 
   async findOne(id: number): Promise<User> {
