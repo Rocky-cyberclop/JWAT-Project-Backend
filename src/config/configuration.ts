@@ -5,9 +5,6 @@ export default () => ({
   dbUsername: process.env.DB_USERNAME,
   dbPassword: process.env.DB_PASSWORD,
   dbName: process.env.DB_NAME,
-  isPublic: process.env.IS_PUBLIC_KEY,
   refreshTokenKey: process.env.REFRESH_TOKEN_KEY,
   accessTokenKey: process.env.ACCESS_TOKEN_KEY,
 });
-
-

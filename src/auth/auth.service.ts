@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { Role } from 'src/user/enums/roles.enum';
 import { Repository } from 'typeorm';
 import { CreateAuthDto } from './dto/create-auth.dto';
 
@@ -29,7 +30,7 @@ export class AuthService {
         HttpStatus.UNAUTHORIZED,
       );
     }
-    const payload = { id: user.id, username: user.username };
+    const payload = { id: user.id, username: user.username, roles: user.roles };
     return this.generateToken(payload);
   };
 
@@ -46,6 +47,7 @@ export class AuthService {
         return this.generateToken({
           id: verify.id,
           username: verify.username,
+          roles: verify.roles,
         });
       } else {
         throw new HttpException('Refresh Token is not valid', HttpStatus.BAD_REQUEST);
@@ -55,7 +57,7 @@ export class AuthService {
     }
   }
 
-  async generateToken(payload: { id: number; username: string }) {
+  async generateToken(payload: { id: number; username: string; roles: Role }) {
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('accessTokenKey'),
       expiresIn: '1h',

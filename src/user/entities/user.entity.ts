@@ -9,13 +9,14 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Gender } from '../enums/gender.enum';
+import { Role } from '../enums/roles.enum';
 
 @Entity({ name: 'user' })
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 100, unique: true })
+  @Column({ length: 100 })
   fullName: string;
 
   @Column({ length: 12, unique: true })
@@ -42,6 +43,13 @@ export class User {
 
   @Column({ length: 255 })
   password: string;
+
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.EMPLOYEE,
+  })
+  roles: Role;
 
   @CreateDateColumn()
   createdAt: Date;
