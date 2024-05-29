@@ -15,7 +15,7 @@ export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = {
       database: configService.get<string>('dbName'),
       password: configService.get<string>('dbPassword'),
       entities: ['dist/**/*.entity.js'],
-      synchronize: true,
+      synchronize: false,
       migrations: ['dist/database/migrations/*.js'],
       ssl: {
         rejectUnauthorized: false,
