@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,17 +15,19 @@ export class UserService {
     const userExist = await this.userRepository.findOne({
       where: { username: createUserDto.username },
     });
-    // if (userExist) {
-    //   throw new ConflictException('Username already exists');
-    // }
+    if (userExist) {
+      throw new ConflictException('Username already exists');
+    }
     const newUser = this.userRepository.create(createUserDto);
 
     try {
       return await this.userRepository.save(newUser);
     } catch (error) {
       if (error.code === '23505') {
-        // PostgreSQL unique violation error code
-        throw new ConflictException('Duplicate key value violates unique constraint');
+        throw new HttpException(
+          'Duplicate key value violates unique constraint',
+          HttpStatus.BAD_REQUEST,
+        );
       } else {
         throw error;
       }

@@ -31,7 +31,6 @@ export class RolesGuard implements CanActivate {
     if (!hasRole) {
       throw new UnauthorizedException('User does not have required roles');
     }
-
     return true;
   }
 }
