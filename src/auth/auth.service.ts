@@ -25,7 +25,7 @@ export class AuthService {
     if (!verify) {
       throw new HttpException(
         {
-          message: 'Password doese not correct.',
+          message: 'Password does not correct.',
         },
         HttpStatus.UNAUTHORIZED,
       );
@@ -40,7 +40,7 @@ export class AuthService {
         secret: this.configService.get<string>('refreshTokenKey'),
       });
       const checkExistToken = await this.userRepository.findOneBy({
-        email: verify.email,
+        username: verify.username,
         refreshToken,
       });
       if (checkExistToken) {
