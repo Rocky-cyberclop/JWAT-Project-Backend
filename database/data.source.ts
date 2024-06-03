@@ -3,8 +3,8 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 /**
- * This function will custom the environment variable for 
- * loading DataSourceOptions then return a DataSourceOptions 
+ * This function will custom the environment variable for
+ * loading DataSourceOptions then return a DataSourceOptions
  * when run migration
  * @returns DataSourceOptions
  */
@@ -24,7 +24,7 @@ function dynamicConfigDatabaseMyself(): DataSourceOptions {
     ssl: {
       rejectUnauthorized: false,
     },
-  }
+  };
 }
 
 export const dataSourceOptions: DataSourceOptions = dynamicConfigDatabaseMyself();
