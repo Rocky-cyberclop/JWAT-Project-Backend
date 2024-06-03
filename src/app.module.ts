@@ -11,6 +11,10 @@ import { AuthModule } from './auth/auth.module';
 import { RolesGuard } from './auth/roles.guard';
 import configuration from './config/configuration';
 import { UserModule } from './user/user.module';
+import { DocumentModule } from './document/document.module';
+import { ProjectModule } from './project/project.module';
+import { KnowledgeModule } from './knowledge/knowledge.module';
+import { UserProjectModule } from './user-project/user-project.module';
 require('dotenv').config();
 
 @Module({
@@ -24,6 +28,10 @@ require('dotenv').config();
     UserModule,
     AuthModule,
     JwtModule,
+    DocumentModule,
+    ProjectModule,
+    KnowledgeModule,
+    UserProjectModule,
   ],
   controllers: [AppController],
   providers: [

@@ -4,12 +4,15 @@ import {
   BeforeUpdate,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Gender } from '../enums/gender.enum';
 import { Role } from '../enums/roles.enum';
+import { UserProject } from 'src/user-project/entities/user-project.entity';
 
 @Entity({ name: 'user' })
 export class User {
@@ -57,11 +60,14 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ default: false })
-  isDeleted: boolean;
+  @DeleteDateColumn()
+  deleteAt: Date;
 
   @Column({ length: 255, nullable: true })
   refreshToken: string;
+
+  @OneToMany(() => UserProject, (userProject) => userProject.user)
+  userProjects: UserProject[];
 
   @BeforeInsert()
   @BeforeUpdate()
