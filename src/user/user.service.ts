@@ -19,15 +19,14 @@ export class UserService {
       throw new ConflictException('Username already exists');
     }
     const newUser = this.userRepository.create(createUserDto);
-
     try {
       return await this.userRepository.save(newUser);
     } catch (error) {
+      console.log(error);
+      const errorMessage = error.detail;
+      const attributeName = errorMessage.match(/\("?(.*?)"?\)/)[1];
       if (error.code === '23505') {
-        throw new HttpException(
-          'Duplicate key value violates unique constraint',
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new HttpException(attributeName, HttpStatus.BAD_REQUEST);
       } else {
         throw error;
       }
