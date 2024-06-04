@@ -3,7 +3,7 @@ import { Document } from './document.entity';
 
 @Entity({ name: 'document_group' })
 export class DocumentGroup {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ name: 'document_group_id' })
   id: number;
   @Column({ length: 100 })
   name: string;

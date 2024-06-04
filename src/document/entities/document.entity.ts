@@ -12,7 +12,7 @@ import { Project } from 'src/project/entities/project.entity';
 
 @Entity({ name: 'document' })
 export class Document {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ name: 'document_id' })
   id: number;
 
   @Column({ length: 100 })
