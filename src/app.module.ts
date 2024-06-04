@@ -15,6 +15,13 @@ import { DocumentModule } from './document/document.module';
 import { ProjectModule } from './project/project.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
 import { UserProjectModule } from './user-project/user-project.module';
+import { BlogModule } from './blog/blog.module';
+import { StarDetailModule } from './star-detail/star-detail.module';
+import { CommentModule } from './comment/comment.module';
+import { HashTagModule } from './hash-tag/hash-tag.module';
+import { HashTagBlogModule } from './hash-tag-blog/hash-tag-blog.module';
+import { MediaModule } from './media/media.module';
+import { BlogMediaModule } from './blog-media/blog-media.module';
 require('dotenv').config();
 
 @Module({
@@ -32,6 +39,13 @@ require('dotenv').config();
     ProjectModule,
     KnowledgeModule,
     UserProjectModule,
+    BlogModule,
+    StarDetailModule,
+    CommentModule,
+    HashTagModule,
+    HashTagBlogModule,
+    MediaModule,
+    BlogMediaModule,
   ],
   controllers: [AppController],
   providers: [
