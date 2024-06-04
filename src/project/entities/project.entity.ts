@@ -1,19 +1,22 @@
 import { Document } from 'src/document/entities/document.entity';
 import { Knowledge } from 'src/knowledge/entities/knowledge.entity';
+import { Media } from 'src/media/entities/media.entity';
 import { UserProject } from 'src/user-project/entities/user-project.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'project' })
 export class Project {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ name: 'project_id' })
   id: number;
 
   @Column({ type: 'text' })
@@ -39,4 +42,8 @@ export class Project {
 
   @OneToMany(() => UserProject, (userProject) => userProject.project)
   userProjects: UserProject[];
+
+  @OneToOne(() => Media)
+  @JoinColumn()
+  media: Media;
 }
