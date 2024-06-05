@@ -1,26 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { CreateMediaDto } from './dto/create-media.dto';
-import { UpdateMediaDto } from './dto/update-media.dto';
+import { v2 as cloudinary, UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
+import * as streamifier from 'streamifier';
 
 @Injectable()
 export class MediaService {
-  create(createMediaDto: CreateMediaDto) {
-    return 'This action adds a new media';
+  async uploadFiles(
+    files: Express.Multer.File[],
+  ): Promise<(UploadApiResponse | UploadApiErrorResponse)[]> {
+    return Promise.all(files.map((file) => this.uploadFile(file)));
   }
 
-  findAll() {
-    return `This action returns all media`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} media`;
-  }
-
-  update(id: number, updateMediaDto: UpdateMediaDto) {
-    return `This action updates a #${id} media`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} media`;
+  private uploadFile(
+    file: Express.Multer.File,
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    return new Promise<UploadApiResponse | UploadApiErrorResponse>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: 'media_project_php_jwat' },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        },
+      );
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
   }
 }
