@@ -7,4 +7,7 @@ export default () => ({
   dbName: process.env.DB_NAME,
   refreshTokenKey: process.env.REFRESH_TOKEN_KEY,
   accessTokenKey: process.env.ACCESS_TOKEN_KEY,
+  cloudinaryName: process.env.CLOUDINARY_NAME,
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
 });

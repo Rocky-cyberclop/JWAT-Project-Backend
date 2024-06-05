@@ -30,7 +30,7 @@ export class AuthService {
         HttpStatus.UNAUTHORIZED,
       );
     }
-    const payload = { id: user.id, username: user.username, roles: user.roles };
+    const payload = { id: user.id, username: user.username, role: user.role };
     return this.generateToken(payload);
   };
 
@@ -47,7 +47,7 @@ export class AuthService {
         return this.generateToken({
           id: verify.id,
           username: verify.username,
-          roles: verify.roles,
+          role: verify.role,
         });
       } else {
         throw new HttpException('Refresh Token is not valid', HttpStatus.BAD_REQUEST);
@@ -57,7 +57,7 @@ export class AuthService {
     }
   }
 
-  async generateToken(payload: { id: number; username: string; roles: Role }) {
+  async generateToken(payload: { id: number; username: string; role: Role }) {
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('accessTokenKey'),
       expiresIn: '1h',
