@@ -26,8 +26,9 @@ export class UserService {
     if (userExist) {
       throw new ConflictException('Username already exists');
     }
+    const newUser = this.userRepository.create(createUserDto);
     try {
-      const result = await this.userRepository.save(createUserDto);
+      const result = await this.userRepository.save(newUser);
       if (result) {
         return plainToClass(ResponseUserDto, createUserDto);
       }
