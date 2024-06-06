@@ -10,7 +10,7 @@ export class ResponseUserDto {
   dob: string;
   address: string;
   username: string;
-  roles: Role;
+  role: Role;
 
   @Exclude()
   password: string;
