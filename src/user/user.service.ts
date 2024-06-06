@@ -32,7 +32,7 @@ export class UserService {
     try {
       const result = await this.userRepository.save(newUser);
       if (result) {
-      return plainToClass(ResponseUserDto, createUserDto);
+        return plainToClass(ResponseUserDto, createUserDto);
       }
     } catch (error) {
       const errorMessage = error.detail;
@@ -89,7 +89,12 @@ export class UserService {
       user.media = newAvatar;
     }
     try {
-      await this.userRepository.save(user);
+      if (!updateUserDto.password) {
+        const { password, ...updateUser } = user;
+        await this.userRepository.update(user.id, updateUser);
+      } else {
+        await this.userRepository.update(user.id, user);
+      }
       if (oldAvatarId && oldCloudId) {
         await this.mediaRepository.delete(oldAvatarId);
         await this.mediaService.deleteMedia(oldCloudId, oldMediaType);
