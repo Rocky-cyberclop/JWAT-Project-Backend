@@ -1,5 +1,4 @@
 import * as bcrypt from 'bcrypt';
-import { Exclude } from 'class-transformer';
 import { Blog } from 'src/blog/entities/blog.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { Media } from 'src/media/entities/media.entity';
@@ -52,7 +51,6 @@ export class User {
   username: string;
 
   @Column({ length: 255 })
-  @Exclude()
   password: string;
 
   @Column({
@@ -72,7 +70,6 @@ export class User {
   deleteAt: Date;
 
   @Column({ length: 255, nullable: true })
-  @Exclude()
   refreshToken: string;
 
   @OneToMany(() => Blog, (blog) => blog.user)

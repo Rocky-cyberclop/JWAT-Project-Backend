@@ -43,9 +43,6 @@ export class UserController {
     if (req.fileValidationError) {
       throw new HttpException(req.fileValidationError, HttpStatus.BAD_REQUEST);
     }
-    if (!files) {
-      throw new HttpException('File is require', HttpStatus.BAD_REQUEST);
-    }
     return this.userService.update(req.user.id, updateUserDto, files);
   }
 }
