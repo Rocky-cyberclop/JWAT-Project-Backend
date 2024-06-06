@@ -26,11 +26,13 @@ export class UserService {
     if (userExist) {
       throw new ConflictException('Username already exists');
     }
+    const { dob } = createUserDto;
     const newUser = this.userRepository.create(createUserDto);
+    newUser.dob = new Date(dob);
     try {
       const result = await this.userRepository.save(newUser);
       if (result) {
-        return plainToClass(ResponseUserDto, createUserDto);
+      return plainToClass(ResponseUserDto, createUserDto);
       }
     } catch (error) {
       const errorMessage = error.detail;
@@ -70,7 +72,7 @@ export class UserService {
     let oldAvatarId: number;
     let oldCloudId: string;
     let oldMediaType: string;
-    if (files) {
+    if (files.length !== 0) {
       const avatarUser = new Media();
       const avatars = await this.mediaService.uploadFiles(files);
       avatars.forEach((a) => {
