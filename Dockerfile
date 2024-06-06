@@ -1,13 +1,13 @@
 FROM node:18.1-alpine
 
-ENV PORT ${PORT}
+WORKDIR /app
 
-COPY . /home/app
-
-WORKDIR /home/app
+COPY package*.json ./
 
 RUN npm install
 
-EXPOSE ${PORT}
+COPY . .
 
-CMD [ "node", "app.js" ]
+RUN npm run build
+
+CMD [ "npm", "run", "start:prod" ]
