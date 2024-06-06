@@ -17,12 +17,12 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.setGlobalPrefix('api');
   app.enableCors({
     origin: '*',
     allowedHeaders: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   });
-  
   await app.listen(port);
   console.log(`This app is running on port ${port}`);
 }

@@ -9,6 +9,12 @@ export class Media {
   @Column({ length: 255 })
   url: string;
 
+  @Column({ length: 255 })
+  cloudId: string;
+
+  @Column({ length: 20 })
+  mediaType: string;
+
   @OneToMany(() => BlogMedia, (blogMedia) => blogMedia.media)
   blogMedias: BlogMedia[];
 }

@@ -53,7 +53,11 @@ export class UserService {
     return plainToClass(ResponseUserDto, user);
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<boolean> {
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+    files: Express.Multer.File[],
+  ): Promise<boolean> {
     const user = await this.userRepository.findOne({
       where: { id: id },
       relations: { media: true },
@@ -61,22 +65,31 @@ export class UserService {
     if (!user) {
       throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
     }
-    const { avatar, ...userDtoNotAvt } = updateUserDto;
-    Object.assign(user, userDtoNotAvt);
+    Object.assign(user, updateUserDto);
     let oldAvatarId: number;
-    if (avatar) {
+    let oldCloudId: string;
+    let oldMediaType: string;
+    if (files) {
       const avatarUser = new Media();
-      avatarUser.url = avatar;
+      const avatars = await this.mediaService.uploadFiles(files);
+      avatars.forEach((a) => {
+        avatarUser.url = a.url;
+        avatarUser.cloudId = a.public_id;
+        avatarUser.mediaType = a.resource_type;
+      });
       const newAvatar = await this.mediaRepository.save(avatarUser);
       if (user.media) {
         oldAvatarId = user.media.id;
+        oldCloudId = user.media.cloudId;
+        oldMediaType = user.media.mediaType;
       }
       user.media = newAvatar;
     }
     try {
       await this.userRepository.save(user);
-      if (oldAvatarId) {
+      if (oldAvatarId && oldCloudId) {
         await this.mediaRepository.delete(oldAvatarId);
+        await this.mediaService.deleteMedia(oldCloudId, oldMediaType);
       }
     } catch (error) {
       const errorMessage = error.detail;
