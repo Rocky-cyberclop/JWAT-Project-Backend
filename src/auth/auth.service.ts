@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { Role } from 'src/user/enums/roles.enum';
 import { Repository } from 'typeorm';
 import { CreateAuthDto } from './dto/create-auth.dto';
 
@@ -30,7 +29,7 @@ export class AuthService {
         HttpStatus.UNAUTHORIZED,
       );
     }
-    const payload = { id: user.id, username: user.username, role: user.role };
+    const payload = { id: user.id };
     return this.generateToken(payload);
   };
 
@@ -40,14 +39,12 @@ export class AuthService {
         secret: this.configService.get<string>('refreshTokenKey'),
       });
       const checkExistToken = await this.userRepository.findOneBy({
-        username: verify.username,
+        id: verify.id,
         refreshToken,
       });
       if (checkExistToken) {
         return this.generateToken({
           id: verify.id,
-          username: verify.username,
-          role: verify.role,
         });
       } else {
         throw new HttpException('Refresh Token is not valid', HttpStatus.BAD_REQUEST);
@@ -57,7 +54,7 @@ export class AuthService {
     }
   }
 
-  async generateToken(payload: { id: number; username: string; role: Role }) {
+  async generateToken(payload: { id: number }) {
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('accessTokenKey'),
       expiresIn: '1h',

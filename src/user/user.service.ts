@@ -4,10 +4,12 @@ import { plainToClass } from 'class-transformer';
 import { Media } from 'src/media/entities/media.entity';
 import { MediaService } from 'src/media/media.service';
 import { Repository } from 'typeorm';
+import { ChangePasswordUserDto } from './dto/change-password-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ResponseUserDto } from './dto/response-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { Role } from './enums/roles.enum';
 
 @Injectable()
 export class UserService {
@@ -56,13 +58,36 @@ export class UserService {
     return plainToClass(ResponseUserDto, user);
   }
 
+  async getRole(id: number): Promise<Role> {
+    const user = await this.userRepository.findOneBy({ id });
+    return user.role;
+  }
+
+  async changePassword(id: number, changePasswordUserDto: ChangePasswordUserDto): Promise<boolean> {
+    console.log(id);
+
+    const user = await this.userRepository.findOneBy({ id });
+    const verify = await user.comparePassword(changePasswordUserDto.oldPassword);
+    if (!verify) {
+      throw new HttpException(
+        {
+          message: 'Password does not correct.',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+    user.password = changePasswordUserDto.password;
+    await this.userRepository.update(id, user);
+    return true;
+  }
+
   async update(
     id: number,
     updateUserDto: UpdateUserDto,
     files: Express.Multer.File[],
   ): Promise<boolean> {
     const user = await this.userRepository.findOne({
-      where: { id: id },
+      where: { id },
       relations: { media: true },
     });
     if (!user) {
@@ -89,12 +114,8 @@ export class UserService {
       user.media = newAvatar;
     }
     try {
-      if (!updateUserDto.password) {
-        const { password, ...updateUser } = user;
-        await this.userRepository.update(user.id, updateUser);
-      } else {
-        await this.userRepository.update(user.id, user);
-      }
+      const { password, ...updateUser } = user;
+      await this.userRepository.update(user.id, updateUser);
       if (oldAvatarId && oldCloudId) {
         await this.mediaRepository.delete(oldAvatarId);
         await this.mediaService.deleteMedia(oldCloudId, oldMediaType);
