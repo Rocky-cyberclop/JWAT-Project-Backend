@@ -13,6 +13,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/decorator/roles.decorator';
 import { FileInterceptor } from 'src/interceptor/file.interceptor';
+import { ChangePasswordUserDto } from './dto/change-password-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ResponseUserDto } from './dto/response-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -44,5 +45,18 @@ export class UserController {
       throw new HttpException(req.fileValidationError, HttpStatus.BAD_REQUEST);
     }
     return this.userService.update(req.user.id, updateUserDto, files);
+  }
+
+  @Patch('change-password')
+  changePassword(
+    @Req() req: any,
+    @Body() changePasswordUserDto: ChangePasswordUserDto,
+  ): Promise<boolean> {
+    return this.userService.changePassword(req.user.id, changePasswordUserDto);
+  }
+
+  @Get('get-role')
+  getRole(@Req() req: any): Promise<Role> {
+    return this.userService.getRole(req.user.id);
   }
 }

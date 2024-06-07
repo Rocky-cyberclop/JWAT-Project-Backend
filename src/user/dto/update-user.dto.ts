@@ -12,10 +12,6 @@ export class UpdateUserDto {
   phoneNumber?: string;
 
   @IsOptional()
-  @IsString()
-  password?: string;
-
-  @IsOptional()
   @IsEnum(Gender)
   gender?: Gender;
 }
