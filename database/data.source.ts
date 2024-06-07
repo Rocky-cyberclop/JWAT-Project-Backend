@@ -19,7 +19,6 @@ function dynamicConfigDatabaseMyself(): DataSourceOptions {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     entities: ['dist/**/*.entity.js'],
-    synchronize: false,
     migrations: ['dist/database/migrations/*.js'],
     ssl: {
       rejectUnauthorized: false,
