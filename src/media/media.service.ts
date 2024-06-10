@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { v2 as cloudinary, UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 import * as streamifier from 'streamifier';
+import { DeleteResult, Repository } from 'typeorm';
+import { Media } from './entities/media.entity';
 
 @Injectable()
 export class MediaService {
-  constructor() {}
+  constructor(
+    @InjectRepository(Media)
+    private mediaRepository: Repository<Media>,
+  ) {}
 
   async uploadFiles(
     files: Express.Multer.File[],
@@ -35,5 +41,13 @@ export class MediaService {
     } catch (error) {
       throw new Error(`Failed to delete image: ${error.message}`);
     }
+  }
+
+  async save(media: Media): Promise<Media> {
+    return await this.mediaRepository.save(media);
+  }
+
+  async deleteById(id: number): Promise<DeleteResult> {
+    return await this.mediaRepository.delete(id);
   }
 }
