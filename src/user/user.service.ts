@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { Media } from 'src/media/entities/media.entity';
 import { MediaService } from 'src/media/media.service';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { ChangePasswordUserDto } from './dto/change-password-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ResponseUserDto } from './dto/response-user.dto';
@@ -16,10 +16,23 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(Media)
-    private mediaRepository: Repository<Media>,
     private readonly mediaService: MediaService,
   ) {}
+
+  async findOneByUsername(username: string): Promise<User> {
+    return await this.userRepository.findOneBy({ username });
+  }
+
+  async findOneByIdAndRefreshToken(id: number, refreshToken: string): Promise<User> {
+    return await this.userRepository.findOneBy({
+      id,
+      refreshToken,
+    });
+  }
+
+  async updateById(id: number, user: Partial<User>): Promise<UpdateResult> {
+    return await this.userRepository.update(id, user);
+  }
 
   async create(createUserDto: CreateUserDto): Promise<ResponseUserDto> {
     const userExist = await this.userRepository.findOne({
@@ -64,8 +77,6 @@ export class UserService {
   }
 
   async changePassword(id: number, changePasswordUserDto: ChangePasswordUserDto): Promise<boolean> {
-    console.log(id);
-
     const user = await this.userRepository.findOneBy({ id });
     const verify = await user.comparePassword(changePasswordUserDto.oldPassword);
     if (!verify) {
@@ -105,7 +116,7 @@ export class UserService {
         avatarUser.cloudId = a.public_id;
         avatarUser.mediaType = a.resource_type;
       });
-      const newAvatar = await this.mediaRepository.save(avatarUser);
+      const newAvatar = await this.mediaService.save(avatarUser);
       if (user.media) {
         oldAvatarId = user.media.id;
         oldCloudId = user.media.cloudId;
@@ -117,7 +128,7 @@ export class UserService {
       const { password, ...updateUser } = user;
       await this.userRepository.update(user.id, updateUser);
       if (oldAvatarId && oldCloudId) {
-        await this.mediaRepository.delete(oldAvatarId);
+        await this.mediaService.deleteById(oldAvatarId);
         await this.mediaService.deleteMedia(oldCloudId, oldMediaType);
       }
     } catch (error) {

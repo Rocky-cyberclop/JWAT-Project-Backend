@@ -2,12 +2,16 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from 'src/decorator/roles.decorator';
 import { Role } from 'src/user/enums/roles.enum';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private readonly userService: UserService,
+    private reflector: Reflector,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -15,18 +19,15 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
-
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
-
+    const { id } = request.user;
+    const user = await this.userService.findOne(id);
     if (!user) {
       throw new UnauthorizedException('User not found in request');
     }
-
     if (!user.role) {
       throw new UnauthorizedException('User role not found');
     }
-
     const hasRole = requiredRoles.some((role) => user.role.includes(role));
     if (!hasRole) {
       throw new UnauthorizedException('User does not have required role');

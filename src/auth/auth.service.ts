@@ -1,22 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { UserService } from 'src/user/user.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly userService: UserService,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
 
   login = async (createAuthDto: CreateAuthDto): Promise<any> => {
-    const user = await this.userRepository.findOne({ where: { username: createAuthDto.username } });
+    const user = await this.userService.findOneByUsername(createAuthDto.username);
     if (!user) {
       throw new HttpException({ message: 'User is not exist.' }, HttpStatus.UNAUTHORIZED);
     }
@@ -38,10 +35,10 @@ export class AuthService {
       const verify = await this.jwtService.verifyAsync(refreshToken, {
         secret: this.configService.get<string>('refreshTokenKey'),
       });
-      const checkExistToken = await this.userRepository.findOneBy({
-        id: verify.id,
+      const checkExistToken = await this.userService.findOneByIdAndRefreshToken(
+        verify.id,
         refreshToken,
-      });
+      );
       if (checkExistToken) {
         return this.generateToken({
           id: verify.id,
@@ -63,7 +60,7 @@ export class AuthService {
       secret: this.configService.get<string>('refreshTokenKey'),
       expiresIn: '7d',
     });
-    await this.userRepository.update(payload.id, { refreshToken });
+    await this.userService.updateById(payload.id, { refreshToken });
     return { accessToken, refreshToken };
   }
 }
