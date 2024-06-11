@@ -9,13 +9,13 @@ export class MailController {
 
   @Public()
   @Post('/send-email')
-  async sendMail() {
+  sendMail() {
     const dto: CreateUserMailDto = {
       recipients: [{ name: 'Hào Trần', address: 'phkane732002@gmail.com' }],
       subject: 'Lucky Winner',
       username: 'rocky1',
       password: 'rocky1',
     };
-    return await this.mailService.sendEmail(dto);
+    return this.mailService.sendEmail(dto);
   }
 }

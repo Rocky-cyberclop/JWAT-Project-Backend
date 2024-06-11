@@ -17,13 +17,13 @@ export class MediaController {
 
   @Post('upload')
   @UseInterceptors(FilesInterceptor('files', 4, new FileInterceptor().createMulterOptions()))
-  async uploadFiles(@Req() req: any, @UploadedFiles() files: Express.Multer.File[]) {
+  uploadFiles(@Req() req: any, @UploadedFiles() files: Express.Multer.File[]) {
     if (req.fileValidationError) {
       throw new HttpException(req.fileValidationError, HttpStatus.BAD_REQUEST);
     }
     if (!files) {
       throw new HttpException('File is require', HttpStatus.BAD_REQUEST);
     }
-    return await this.mediaService.uploadFiles(files);
+    return this.mediaService.uploadFiles(files);
   }
 }
