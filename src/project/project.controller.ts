@@ -1,9 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  UseInterceptors,
+  UploadedFiles,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
+import { FileInterceptor } from 'src/interceptor/file.interceptor';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 // @Roles(Role.MANAGER)
 @Controller('project')
@@ -11,8 +26,16 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto): Promise<Project> {
-    return this.projectService.create(createProjectDto);
+  @UseInterceptors(FilesInterceptor('files', 1, new FileInterceptor().createMulterOptions()))
+  create(
+    @Req() req: any,
+    @Body() createProjectDto: CreateProjectDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<Project> {
+    if (req.fileValidationError) {
+      throw new HttpException(req.fileValidationError, HttpStatus.BAD_REQUEST);
+    }
+    return this.projectService.create(req.user.id, createProjectDto, files);
   }
 
   @Get()
