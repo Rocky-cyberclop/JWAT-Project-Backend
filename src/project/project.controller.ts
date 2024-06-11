@@ -17,19 +17,20 @@ import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
-import { DeleteResult, UpdateResult } from 'typeorm';
+import { DeleteResult } from 'typeorm';
 import { FileInterceptor } from 'src/interceptor/file.interceptor';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/decorator/roles.decorator';
 import { Role } from 'src/user/enums/roles.enum';
 import { SearchProjectDto } from './dto/search-project.dto';
+import { ResponseProjectDto } from './dto/response-project-dto';
 
 @Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post()
-  // @Roles(Role.MANAGER)
+  @Roles(Role.MANAGER)
   @UseInterceptors(FilesInterceptor('files', 1, new FileInterceptor().createMulterOptions()))
   create(
     @Req() req: any,
@@ -49,13 +50,13 @@ export class ProjectController {
   }
 
   @Get('user')
-  // @Roles(Role.MANAGER, Role.EMPLOYEE)
-  findAllWithUser(@Req() req: any): Promise<Project[]> {
+  @Roles(Role.MANAGER, Role.EMPLOYEE)
+  findAllWithUser(@Req() req: any): Promise<ResponseProjectDto[]> {
     return this.projectService.findAllWithUser(req.user.id);
   }
 
   @Get('search')
-  findWithSearch(@Req() req: any, @Query() query: SearchProjectDto): Promise<Project[]> {
+  findWithSearch(@Req() req: any, @Query() query: SearchProjectDto): Promise<ResponseProjectDto[]> {
     return this.projectService.findWithSearch(req.user.id, query);
   }
 
@@ -66,11 +67,13 @@ export class ProjectController {
 
   @Patch(':id')
   @Roles(Role.MANAGER)
+  @UseInterceptors(FilesInterceptor('files', 1, new FileInterceptor().createMulterOptions()))
   update(
     @Param('id') id: string,
     @Body() updateProjectDto: UpdateProjectDto,
-  ): Promise<UpdateResult> {
-    return this.projectService.update(+id, updateProjectDto);
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<Project> {
+    return this.projectService.update(+id, updateProjectDto, files);
   }
 
   @Roles(Role.ADMIN)
