@@ -1,0 +1,29 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Document</title>
+    <style>
+      .container { display: table; width: 100%; text-align: center; } .content { display:
+      table-cell; vertical-align: middle; } .box { display: inline-block; border: 10px solid black;
+      border-radius: 20px; padding: 20px; text-align: center; } .box img { width: 300px; } .box p {
+      font-size: 22px; } .box span { font-size: 18px; }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='content'>
+        <div class='box'>
+          <img
+            src='https://res.cloudinary.com/dzfwvoijo/image/upload/v1718096002/media_project_php_jwat/Sign_up-amico_obu3g5.png'
+            alt=''
+          />
+          <p>Sign Up Success! Please log in and change your password.</p>
+          <span>Username: {{username}}</span>
+          <br />
+          <span>Password: {{password}}</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

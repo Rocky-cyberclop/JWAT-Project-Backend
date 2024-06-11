@@ -10,4 +10,9 @@ export default () => ({
   cloudinaryName: process.env.CLOUDINARY_NAME,
   cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+  mailHost: process.env.MAIL_HOST,
+  mailPort: process.env.MAIL_PORT,
+  mailUser: process.env.MAIL_USER,
+  mailPassword: process.env.MAIL_PASSWORD,
+  defaultMailFrom: process.env.DEFAULT_MAIL_FROM,
 });
