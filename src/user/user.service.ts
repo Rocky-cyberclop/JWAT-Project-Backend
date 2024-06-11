@@ -1,6 +1,8 @@
 import { ConflictException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
+import { CreateUserMailDto } from 'src/mail/dto/mail.dto';
+import { MailService } from 'src/mail/mail.service';
 import { Media } from 'src/media/entities/media.entity';
 import { MediaService } from 'src/media/media.service';
 import { Repository, UpdateResult } from 'typeorm';
@@ -15,8 +17,9 @@ import { Role } from './enums/roles.enum';
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
     private readonly mediaService: MediaService,
+    private readonly mailService: MailService,
   ) {}
 
   async findOneByUsername(username: string): Promise<User> {
@@ -47,6 +50,13 @@ export class UserService {
     try {
       const result = await this.userRepository.save(newUser);
       if (result) {
+        const mailDto: CreateUserMailDto = {
+          recipients: [{ name: newUser.fullName, address: newUser.email }],
+          subject: 'Account Employee',
+          username: newUser.username,
+          password: newUser.username,
+        };
+        await this.mailService.sendEmail(mailDto);
         return plainToClass(ResponseUserDto, createUserDto);
       }
     } catch (error) {
@@ -63,7 +73,7 @@ export class UserService {
   async findOne(id: number): Promise<ResponseUserDto> {
     const user = await this.userRepository.findOne({
       where: { id: id },
-      relations: { media: true },
+      // relations: { media: true },
     });
     if (!user) {
       throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
