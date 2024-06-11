@@ -55,6 +55,18 @@ export class ProjectService {
     return await this.projectRepository.find();
   }
 
+  async findAllWithUser(id: any): Promise<Project[]> {
+    const userDoesProjects = await this.userProjectRepository.find({
+      relations: ['project', 'user'],
+      where: { user: id },
+    });
+    const projects = new Array<Project>();
+    userDoesProjects.forEach((userDoesProject: UserProject) => {
+      projects.push(userDoesProject.project);
+    });
+    return projects;
+  }
+
   async findOne(id: number): Promise<Project> {
     return await this.projectRepository.findOneBy({ id });
   }

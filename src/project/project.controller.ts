@@ -19,13 +19,15 @@ import { Project } from './entities/project.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { FileInterceptor } from 'src/interceptor/file.interceptor';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { Roles } from 'src/decorator/roles.decorator';
+import { Role } from 'src/user/enums/roles.enum';
 
-// @Roles(Role.MANAGER)
 @Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post()
+  @Roles(Role.MANAGER)
   @UseInterceptors(FilesInterceptor('files', 1, new FileInterceptor().createMulterOptions()))
   create(
     @Req() req: any,
@@ -39,8 +41,15 @@ export class ProjectController {
   }
 
   @Get()
+  @Roles(Role.ADMIN)
   findAll(): Promise<Project[]> {
     return this.projectService.findAll();
+  }
+
+  @Get('/user')
+  @Roles(Role.MANAGER, Role.EMPLOYEE)
+  findAllWithUser(@Req() req: any): Promise<Project[]> {
+    return this.projectService.findAllWithUser(req.user.id);
   }
 
   @Get(':id')
@@ -56,7 +65,7 @@ export class ProjectController {
     return this.projectService.update(+id, updateProjectDto);
   }
 
-  // @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string): Promise<DeleteResult> {
     return this.projectService.remove(+id);
