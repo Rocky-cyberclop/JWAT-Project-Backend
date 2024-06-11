@@ -20,9 +20,9 @@ function dynamicConfigDatabaseMyself(): DataSourceOptions {
     database: process.env.DB_NAME,
     entities: ['dist/**/*.entity.js'],
     migrations: ['dist/database/migrations/*.js'],
-    ssl: {
-      rejectUnauthorized: false,
-    },
+    // ssl: {
+    //   rejectUnauthorized: false,
+    // },
   };
 }
 
