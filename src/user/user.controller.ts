@@ -28,7 +28,7 @@ export class UserController {
   create(@Body() createUserDto: CreateUserDto): Promise<ResponseUserDto> {
     return this.userService.create(createUserDto);
   }
-  
+
   @Get('current')
   findOne(@Req() req: any): Promise<ResponseUserDto> {
     return this.userService.findOne(req.user.id);
@@ -44,7 +44,7 @@ export class UserController {
     if (req.fileValidationError) {
       throw new HttpException(req.fileValidationError, HttpStatus.BAD_REQUEST);
     }
-    return this.userService.update(req.user.id, updateUserDto, files);
+    return this.userService.updateQueue(req.user.id, updateUserDto, files);
   }
 
   @Patch('change-password')

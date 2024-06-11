@@ -1,5 +1,7 @@
+import { InjectQueue } from '@nestjs/bull';
 import { ConflictException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bull';
 import { plainToClass } from 'class-transformer';
 import { CreateUserMailDto } from 'src/mail/dto/mail.dto';
 import { MailService } from 'src/mail/mail.service';
@@ -20,6 +22,7 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     private readonly mediaService: MediaService,
     private readonly mailService: MailService,
+    @InjectQueue('user') private userQueue: Queue,
   ) {}
 
   async findOneByUsername(username: string): Promise<User> {
@@ -73,7 +76,7 @@ export class UserService {
   async findOne(id: number): Promise<ResponseUserDto> {
     const user = await this.userRepository.findOne({
       where: { id: id },
-      // relations: { media: true },
+      relations: { media: true },
     });
     if (!user) {
       throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
@@ -99,6 +102,18 @@ export class UserService {
     }
     user.password = changePasswordUserDto.password;
     await this.userRepository.update(id, user);
+    return true;
+  }
+
+  async updateQueue(id: number, updateUserDto: UpdateUserDto, files: Express.Multer.File[]) {
+    const { address, phoneNumber, gender } = updateUserDto;
+    await this.userQueue.add('upload-file', {
+      id,
+      address,
+      phoneNumber,
+      gender,
+      files,
+    });
     return true;
   }
 
