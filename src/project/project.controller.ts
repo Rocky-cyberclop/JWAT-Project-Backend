@@ -11,6 +11,7 @@ import {
   UploadedFiles,
   HttpException,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -21,13 +22,14 @@ import { FileInterceptor } from 'src/interceptor/file.interceptor';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/decorator/roles.decorator';
 import { Role } from 'src/user/enums/roles.enum';
+import { SearchProjectDto } from './dto/search-project.dto';
 
 @Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Post()
-  @Roles(Role.MANAGER)
+  // @Roles(Role.MANAGER)
   @UseInterceptors(FilesInterceptor('files', 1, new FileInterceptor().createMulterOptions()))
   create(
     @Req() req: any,
@@ -46,10 +48,15 @@ export class ProjectController {
     return this.projectService.findAll();
   }
 
-  @Get('/user')
-  @Roles(Role.MANAGER, Role.EMPLOYEE)
+  @Get('user')
+  // @Roles(Role.MANAGER, Role.EMPLOYEE)
   findAllWithUser(@Req() req: any): Promise<Project[]> {
     return this.projectService.findAllWithUser(req.user.id);
+  }
+
+  @Get('search')
+  findWithSearch(@Req() req: any, @Query() query: SearchProjectDto): Promise<Project[]> {
+    return this.projectService.findWithSearch(req.user.id, query);
   }
 
   @Get(':id')
@@ -58,6 +65,7 @@ export class ProjectController {
   }
 
   @Patch(':id')
+  @Roles(Role.MANAGER)
   update(
     @Param('id') id: string,
     @Body() updateProjectDto: UpdateProjectDto,

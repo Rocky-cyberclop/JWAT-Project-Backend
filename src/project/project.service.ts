@@ -8,6 +8,7 @@ import { UserProject } from 'src/user-project/entities/user-project.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Media } from 'src/media/entities/media.entity';
 import { MediaService } from 'src/media/media.service';
+import { SearchProjectDto } from './dto/search-project.dto';
 
 @Injectable()
 export class ProjectService {
@@ -55,11 +56,12 @@ export class ProjectService {
     return await this.projectRepository.find();
   }
 
-  async findAllWithUser(id: any): Promise<Project[]> {
+  async findAllWithUser(userId: any): Promise<Project[]> {
     const userDoesProjects = await this.userProjectRepository.find({
-      relations: ['project', 'user'],
-      where: { user: id },
+      relations: ['project.media', 'user'],
+      where: { user: { id: userId } },
     });
+    console.log(userDoesProjects);
     const projects = new Array<Project>();
     userDoesProjects.forEach((userDoesProject: UserProject) => {
       projects.push(userDoesProject.project);
@@ -68,7 +70,18 @@ export class ProjectService {
   }
 
   async findOne(id: number): Promise<Project> {
-    return await this.projectRepository.findOneBy({ id });
+    return await this.projectRepository.findOne({ relations: ['media'], where: { id: id } });
+  }
+
+  async findWithSearch(idUser: number, query: SearchProjectDto): Promise<Project[]> {
+    if (query && query.name.length === 0) return this.findAllWithUser(idUser);
+    const allProjectWithUser = await this.findAllWithUser(idUser);
+    const rawSearch = query.name.toLowerCase();
+    const res = allProjectWithUser.filter((project: Project) => {
+      const rawProjectName = project.name.toLowerCase();
+      return rawProjectName.includes(rawSearch) || rawSearch.includes(rawProjectName);
+    });
+    return res;
   }
 
   async update(id: number, updateProjectDto: UpdateProjectDto): Promise<UpdateResult> {
