@@ -1,5 +1,7 @@
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bull';
 import { v2 as cloudinary, UploadApiErrorResponse, UploadApiResponse } from 'cloudinary';
 import * as streamifier from 'streamifier';
 import { DeleteResult, Repository } from 'typeorm';
@@ -10,7 +12,18 @@ export class MediaService {
   constructor(
     @InjectRepository(Media)
     private mediaRepository: Repository<Media>,
+    @InjectQueue('media') private mediaQueue: Queue,
   ) {}
+
+  async uploadFileQueue(files: Express.Multer.File[]) {
+    await this.mediaQueue.add(
+      'upload-file',
+      {
+        files,
+      },
+      { removeOnComplete: true },
+    );
+  }
 
   async uploadFiles(
     files: Express.Multer.File[],

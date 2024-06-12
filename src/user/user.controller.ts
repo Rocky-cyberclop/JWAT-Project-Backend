@@ -44,7 +44,7 @@ export class UserController {
     if (req.fileValidationError) {
       throw new HttpException(req.fileValidationError, HttpStatus.BAD_REQUEST);
     }
-    return this.userService.updateQueue(req.user.id, updateUserDto, files);
+    return this.userService.update(req.user.id, updateUserDto, files);
   }
 
   @Patch('change-password')

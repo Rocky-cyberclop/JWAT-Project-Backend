@@ -1,7 +1,5 @@
-import { InjectQueue } from '@nestjs/bull';
 import { ConflictException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Queue } from 'bull';
 import { plainToClass } from 'class-transformer';
 import { CreateUserMailDto } from 'src/mail/dto/mail.dto';
 import { MailService } from 'src/mail/mail.service';
@@ -22,7 +20,6 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     private readonly mediaService: MediaService,
     private readonly mailService: MailService,
-    @InjectQueue('user') private userQueue: Queue,
   ) {}
 
   async findOneByUsername(username: string): Promise<User> {
@@ -105,23 +102,7 @@ export class UserService {
     return true;
   }
 
-  async updateQueue(id: number, updateUserDto: UpdateUserDto, files: Express.Multer.File[]) {
-    const { address, phoneNumber, gender } = updateUserDto;
-    await this.userQueue.add('upload-file', {
-      id,
-      address,
-      phoneNumber,
-      gender,
-      files,
-    });
-    return true;
-  }
-
-  async update(
-    id: number,
-    updateUserDto: UpdateUserDto,
-    files: Express.Multer.File[],
-  ): Promise<boolean> {
+  async updateAvatar(id: number, files: Express.Multer.File[]): Promise<boolean> {
     const user = await this.userRepository.findOne({
       where: { id },
       relations: { media: true },
@@ -129,7 +110,6 @@ export class UserService {
     if (!user) {
       throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
     }
-    Object.assign(user, updateUserDto);
     let oldAvatarId: number;
     let oldCloudId: string;
     let oldMediaType: string;
@@ -149,12 +129,28 @@ export class UserService {
       }
       user.media = newAvatar;
     }
+    const { password, ...updateUser } = user;
+    await this.userRepository.update(id, updateUser);
+    if (oldAvatarId && oldCloudId) {
+      await this.mediaService.deleteById(oldAvatarId);
+      await this.mediaService.deleteMedia(oldCloudId, oldMediaType);
+    }
+    return true;
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto, files: Express.Multer.File[]) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+    if (!user) {
+      throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
+    }
+    Object.assign(user, updateUserDto);
     try {
       const { password, ...updateUser } = user;
       await this.userRepository.update(user.id, updateUser);
-      if (oldAvatarId && oldCloudId) {
-        await this.mediaService.deleteById(oldAvatarId);
-        await this.mediaService.deleteMedia(oldCloudId, oldMediaType);
+      if (files.length !== 0) {
+        this.updateAvatar(id, files);
       }
     } catch (error) {
       const errorMessage = error.detail;
