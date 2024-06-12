@@ -3,7 +3,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { UserProject } from 'src/user-project/entities/user-project.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Media } from 'src/media/entities/media.entity';
@@ -11,6 +11,7 @@ import { MediaService } from 'src/media/media.service';
 import { SearchProjectDto } from './dto/search-project.dto';
 import { ResponseProjectDto } from './dto/response-project-dto';
 import { Role } from 'src/user/enums/roles.enum';
+import { AddUsersProjectRequest } from './dto/add-user-project-request.dto';
 
 @Injectable()
 export class ProjectService {
@@ -62,6 +63,7 @@ export class ProjectService {
     const projects = new Array<ResponseProjectDto>();
     const projectPromise = userDoesProjects.map(async (userDoesProject: UserProject) => {
       const responseProject: ResponseProjectDto = {
+        id: userDoesProject.id,
         name: userDoesProject.project.name,
         description: userDoesProject.project.description,
         createdAt: userDoesProject.createdAt,
@@ -133,5 +135,9 @@ export class ProjectService {
 
   async remove(id: number): Promise<DeleteResult> {
     return await this.projectRepository.softDelete(id);
+  }
+
+  async addUsersToProject(addRequest: AddUsersProjectRequest): Promise<AddUsersProjectRequest> {
+    return addRequest;
   }
 }
