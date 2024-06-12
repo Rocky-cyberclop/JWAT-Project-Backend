@@ -64,6 +64,7 @@ export class ProjectService {
       const responseProject: ResponseProjectDto = {
         name: userDoesProject.project.name,
         description: userDoesProject.project.description,
+        createdAt: userDoesProject.createdAt,
         media: userDoesProject.project.media,
       };
       const projectOwner = await this.userProjectRepository.findOne({
