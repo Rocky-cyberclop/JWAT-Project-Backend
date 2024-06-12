@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository } from 'typeorm';
+import { DeleteResult, In, Repository } from 'typeorm';
 import { UserProject } from 'src/user-project/entities/user-project.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Media } from 'src/media/entities/media.entity';
@@ -12,6 +12,12 @@ import { SearchProjectDto } from './dto/search-project.dto';
 import { ResponseProjectDto } from './dto/response-project-dto';
 import { Role } from 'src/user/enums/roles.enum';
 import { AddUsersProjectRequest } from './dto/add-user-project-request.dto';
+import { ResponseUserDto } from 'src/user/dto/response-user.dto';
+import { plainToClass } from 'class-transformer';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
+import { UserNotInResponse } from './dto/user-not-in.dto';
+import { MailService } from 'src/mail/mail.service';
+import { MutateProjectMailDto } from 'src/mail/dto/mail-info-mutate-project.dto';
 
 @Injectable()
 export class ProjectService {
@@ -23,6 +29,7 @@ export class ProjectService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly mediaService: MediaService,
+    private readonly mailService: MailService,
   ) {}
   async create(
     managerId: number,
@@ -137,7 +144,68 @@ export class ProjectService {
     return await this.projectRepository.softDelete(id);
   }
 
+  async findUsersNotInProject(
+    options: IPaginationOptions,
+    projectId: number,
+  ): Promise<UserNotInResponse> {
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userProjects', 'userProject', 'userProject.projectId = :projectId', {
+        projectId,
+      })
+      .where('userProject.projectId IS NULL');
+
+    const userNotIn = await paginate<User>(queryBuilder, options);
+    const userNotInResponse = new UserNotInResponse();
+    userNotInResponse.items = userNotIn.items.map((user) => {
+      return plainToClass(ResponseUserDto, user);
+    });
+    userNotInResponse.meta = userNotIn.meta;
+    return userNotInResponse;
+  }
+
+  // Haven't tested the send mail when add users to project,
+  // The foreach also has async, it maybe can make the multi thread processes
   async addUsersToProject(addRequest: AddUsersProjectRequest): Promise<AddUsersProjectRequest> {
+    const users = await this.userRepository.find({ where: { id: In(addRequest.users) } });
+    const project = await this.projectRepository.findOne({ where: { id: addRequest.project } });
+    const userProjects = new Array<UserProject>();
+    users.forEach(async (user) => {
+      if (user.role === Role.MANAGER)
+        throw new HttpException(
+          `You can not add ${user.fullName} to this project cause he or she is a manager`,
+          HttpStatus.BAD_REQUEST,
+        );
+      const userProject = new UserProject();
+      userProject.user = user;
+      userProject.project = project;
+      userProject.role = user.role;
+      userProjects.push(userProject);
+      const mailDto: MutateProjectMailDto = {
+        recipients: [{ name: user.fullName, address: user.email }],
+        subject: 'Added to a new project',
+        project: project.name,
+      };
+      await this.mailService.sendEmailAddToProject(mailDto);
+    });
+    await this.userProjectRepository.save(userProjects);
     return addRequest;
+  }
+
+  async findUsersInProject(projectId: number): Promise<ResponseUserDto[]> {
+    const userProjects = await this.userProjectRepository.find({
+      relations: ['user'],
+      where: { project: { id: projectId } },
+    });
+    return userProjects.map((userProject): ResponseUserDto => {
+      return plainToClass(ResponseUserDto, userProject.user);
+    });
+  }
+
+  async removeUsersFromProject(addRequest: AddUsersProjectRequest): Promise<DeleteResult> {
+    return await this.userProjectRepository.softDelete({
+      project: { id: addRequest.project },
+      user: { id: In(addRequest.users) },
+    });
   }
 }

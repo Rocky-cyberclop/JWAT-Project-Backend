@@ -18,4 +18,16 @@ export class EmailConsumer {
       },
     });
   }
+
+  @Process('add-user-to-project')
+  async addUserToProjectEmail(job: Job<unknown>) {
+    await this.mailerService.sendMail({
+      to: job.data['to'],
+      subject: job.data['subject'],
+      template: './add-to-project',
+      context: {
+        project: job.data['project'],
+      },
+    });
+  }
 }
