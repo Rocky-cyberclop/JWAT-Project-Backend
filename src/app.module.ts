@@ -1,6 +1,6 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -18,12 +18,12 @@ import { DocumentModule } from './document/document.module';
 import { HashTagBlogModule } from './hash-tag-blog/hash-tag-blog.module';
 import { HashTagModule } from './hash-tag/hash-tag.module';
 import { KnowledgeModule } from './knowledge/knowledge.module';
+import { MailModule } from './mail/mail.module';
 import { MediaModule } from './media/media.module';
 import { ProjectModule } from './project/project.module';
 import { StarDetailModule } from './star-detail/star-detail.module';
 import { UserProjectModule } from './user-project/user-project.module';
 import { UserModule } from './user/user.module';
-import { MailModule } from './mail/mail.module';
 require('dotenv').config();
 
 @Module({
@@ -33,11 +33,17 @@ require('dotenv').config();
       isGlobal: true,
       load: [configuration],
     }),
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6379,
-      },
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        redis: {
+          host: configService.get<string>('redisHost'),
+          port: configService.get<number>('redisPort'),
+          username: configService.get<string>('redisUsername'),
+          password: configService.get<string>('redisPassword'),
+        },
+      }),
     }),
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     UserModule,
