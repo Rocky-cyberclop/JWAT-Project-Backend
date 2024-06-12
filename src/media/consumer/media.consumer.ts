@@ -12,6 +12,7 @@ export class MediaConsumer {
       ...file,
       buffer: Buffer.from(file.buffer.data),
     }));
-    await this.mediaService.uploadFiles(transformedFiles);
+    const result = await this.mediaService.uploadFiles(transformedFiles);
+    return result;
   }
 }

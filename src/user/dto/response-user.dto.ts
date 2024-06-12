@@ -3,6 +3,7 @@ import { Gender } from '../enums/gender.enum';
 import { Role } from '../enums/roles.enum';
 
 export class ResponseUserDto {
+  id: number;
   fullName: string;
   phoneNumber: string;
   email: string;

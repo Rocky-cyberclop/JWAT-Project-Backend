@@ -15,14 +15,18 @@ export class MediaService {
     @InjectQueue('media') private mediaQueue: Queue,
   ) {}
 
-  async uploadFileQueue(files: Express.Multer.File[]) {
-    await this.mediaQueue.add(
+  async uploadFileQueue(
+    files: Express.Multer.File[],
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    const job = await this.mediaQueue.add(
       'upload-file',
       {
         files,
       },
       { removeOnComplete: true },
     );
+    const queue = await this.mediaQueue.getJob(job.id);
+    return await queue.finished();
   }
 
   async uploadFiles(
@@ -40,7 +44,7 @@ export class MediaService {
         { folder: 'media_project_php_jwat', resource_type: resourceType },
         (error, result) => {
           if (error) return reject(error);
-          resolve(result);
+          return resolve(result);
         },
       );
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
