@@ -24,6 +24,7 @@ import { Roles } from 'src/decorator/roles.decorator';
 import { Role } from 'src/user/enums/roles.enum';
 import { SearchProjectDto } from './dto/search-project.dto';
 import { ResponseProjectDto } from './dto/response-project-dto';
+import { AddUsersProjectRequest } from './dto/add-user-project-request.dto';
 
 @Controller('project')
 export class ProjectController {
@@ -76,9 +77,15 @@ export class ProjectController {
     return this.projectService.update(+id, updateProjectDto, files);
   }
 
-  @Roles(Role.ADMIN)
   @Delete(':id')
+  @Roles(Role.ADMIN)
   remove(@Param('id') id: string): Promise<DeleteResult> {
     return this.projectService.remove(+id);
+  }
+
+  @Roles(Role.MANAGER)
+  @Post('/addUsers')
+  addUsersToProject(@Body() addRequest: AddUsersProjectRequest): Promise<AddUsersProjectRequest> {
+    return this.projectService.addUsersToProject(addRequest);
   }
 }
