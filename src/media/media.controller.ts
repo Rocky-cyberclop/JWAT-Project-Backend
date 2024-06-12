@@ -24,6 +24,6 @@ export class MediaController {
     if (!files) {
       throw new HttpException('File is require', HttpStatus.BAD_REQUEST);
     }
-    return this.mediaService.uploadFiles(files);
+    return this.mediaService.uploadFileQueue(files);
   }
 }

@@ -1,10 +1,10 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { UserService } from '../user.service';
+import { MediaService } from '../media.service';
 
-@Processor('user')
-export class UserConsumer {
-  constructor(private readonly userService: UserService) {}
+@Processor('media')
+export class MediaConsumer {
+  constructor(private readonly mediaService: MediaService) {}
 
   @Process('upload-file')
   async uploadFileQueue(job: Job<unknown>) {
@@ -12,10 +12,6 @@ export class UserConsumer {
       ...file,
       buffer: Buffer.from(file.buffer.data),
     }));
-    return await this.userService.update(
-      job.data['id'],
-      job.data['updateUserDto'],
-      transformedFiles,
-    );
+    await this.mediaService.uploadFiles(transformedFiles);
   }
 }
