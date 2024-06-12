@@ -115,7 +115,7 @@ export class UserService {
     let oldMediaType: string;
     if (files.length !== 0) {
       const avatarUser = new Media();
-      const avatars = await this.mediaService.uploadFiles(files);
+      const avatars = await this.mediaService.uploadFileQueue(files);
       avatars.forEach((a) => {
         avatarUser.url = a.url;
         avatarUser.cloudId = a.public_id;
@@ -132,8 +132,8 @@ export class UserService {
     const { password, ...updateUser } = user;
     await this.userRepository.update(id, updateUser);
     if (oldAvatarId && oldCloudId) {
-      await this.mediaService.deleteById(oldAvatarId);
-      await this.mediaService.deleteMedia(oldCloudId, oldMediaType);
+      this.mediaService.deleteById(oldAvatarId);
+      this.mediaService.deleteMedia(oldCloudId, oldMediaType);
     }
     return true;
   }

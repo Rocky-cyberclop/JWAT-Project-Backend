@@ -9,29 +9,24 @@ export class FileInterceptor {
     return {
       fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('video/')) {
-          cb(null, true);
-          const fileSize = parseInt(req.headers['content-length']);
-          if (fileSize > 1024 * 1024 * 15) {
+          if (file.size > 1024 * 1024 * 15) {
             req.fileValidationError = 'File size is to large. Accepted file size is less than 15MB';
             cb(null, false);
           } else {
             cb(null, true);
           }
-        } else {
+        }
+        if (file.mimetype.startsWith('image/')) {
           const ext = extname(file.originalname);
           const allowedExtArr = ['.jpg', '.png', '.jpeg'];
           if (!allowedExtArr.includes(ext)) {
             req.fileValidationError = `Wrong extension type. Accepted file ext are: ${allowedExtArr.toString()}`;
             cb(null, false);
+          } else if (file.size > 1024 * 1024 * 4) {
+            req.fileValidationError = 'File size is to large. Accepted file size is less than 4MB';
+            cb(null, false);
           } else {
-            const fileSize = parseInt(req.headers['content-length']);
-            if (fileSize > 1024 * 1024 * 4) {
-              req.fileValidationError =
-                'File size is to large. Accepted file size is less than 4MB';
-              cb(null, false);
-            } else {
-              cb(null, true);
-            }
+            cb(null, true);
           }
         }
       },
