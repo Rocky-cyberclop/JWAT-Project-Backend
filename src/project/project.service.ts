@@ -157,7 +157,8 @@ export class ProjectService {
       .leftJoinAndSelect('user.userProjects', 'userProject', 'userProject.projectId = :projectId', {
         projectId,
       })
-      .where('userProject.projectId IS NULL');
+      .where('userProject.projectId IS NULL')
+      .orderBy('user.id', 'ASC');
 
     const userNotIn = await paginate<User>(queryBuilder, options);
     const userNotInResponse = new UserNotInResponse();
@@ -166,6 +167,27 @@ export class ProjectService {
     });
     userNotInResponse.meta = userNotIn.meta;
     return userNotInResponse;
+  }
+
+  async findUsersInProjectWithId(projectId: number, userId: number): Promise<ResponseUserDto[]> {
+    const usersNotIn = await this.projectRepository.find({
+      relations: ['userProjects.user'],
+      where: {
+        id: projectId,
+        userProjects: {
+          user: {
+            id: userId,
+          },
+        },
+      },
+    });
+    if (usersNotIn.length === 0) {
+      const users = await this.userRepository.find({ where: { id: userId } });
+      return users.map((user) => {
+        return plainToClass(ResponseUserDto, user);
+      });
+    }
+    return [];
   }
 
   // Haven't tested the send mail when add users to project,
