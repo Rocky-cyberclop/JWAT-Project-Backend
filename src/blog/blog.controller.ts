@@ -53,8 +53,9 @@ export class BlogController {
     return this.blogService.update(+id, updateBlogDto);
   }
 
+  @Roles(Role.EMPLOYEE, Role.MANAGER)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.blogService.remove(+id);
+  remove(@Req() req: any, @Param('id') id: string): Promise<boolean> {
+    return this.blogService.remove(+id, req.user.id);
   }
 }
