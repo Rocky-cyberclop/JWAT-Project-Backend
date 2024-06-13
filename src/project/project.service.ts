@@ -18,6 +18,8 @@ import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { UserNotInResponse } from './dto/user-not-in.dto';
 import { MailService } from 'src/mail/mail.service';
 import { MutateProjectMailDto } from 'src/mail/dto/mail-info-mutate-project.dto';
+import { Knowledge } from 'src/knowledge/entities/knowledge.entity';
+import { AddKnowledgeProjectDto } from './dto/add-knowledge-request.dto';
 
 @Injectable()
 export class ProjectService {
@@ -26,6 +28,8 @@ export class ProjectService {
     private projectRepository: Repository<Project>,
     @InjectRepository(UserProject)
     private userProjectRepository: Repository<UserProject>,
+    @InjectRepository(Knowledge)
+    private knowledgeRepository: Repository<Knowledge>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly mediaService: MediaService,
@@ -207,5 +211,54 @@ export class ProjectService {
       project: { id: addRequest.project },
       user: { id: In(addRequest.users) },
     });
+  }
+
+  async addKnowledgeToProject(
+    addRequest: AddKnowledgeProjectDto,
+    files: Express.Multer.File[],
+  ): Promise<AddKnowledgeProjectDto> {
+    const knowledge = new Knowledge();
+    knowledge.name = addRequest.name;
+    knowledge.project = await this.projectRepository.findOne({
+      where: { id: Number(addRequest.project) },
+    });
+    if (files && files.length > 0) {
+      const media = new Media();
+      const medias = await this.mediaService.uploadFiles(files);
+      medias.forEach((cloudSavedMedia) => {
+        media.url = cloudSavedMedia.url;
+        media.cloudId = cloudSavedMedia.public_id;
+        media.mediaType = cloudSavedMedia.resource_type;
+      });
+      const savedMedia = await this.mediaService.save(media);
+      knowledge.media = savedMedia;
+    }
+    await this.knowledgeRepository.save(knowledge);
+    return addRequest;
+  }
+
+  async removeKnowledgeFromProject(knowledgeId: number): Promise<DeleteResult> {
+    const knowledge = await this.knowledgeRepository.findOne({
+      relations: ['media'],
+      where: { id: knowledgeId },
+    });
+    if (knowledge?.media) {
+      const oldMediaId = knowledge.media.id;
+      const oldCloudId = knowledge.media.cloudId;
+      const oldMediaType = knowledge.media.mediaType;
+      knowledge.media = null;
+      await this.knowledgeRepository.save(knowledge);
+      await this.mediaService.deleteById(oldMediaId);
+      await this.mediaService.deleteMedia(oldCloudId, oldMediaType);
+    }
+    return await this.knowledgeRepository.delete(knowledgeId);
+  }
+
+  async findKnowledgesInProject(projectId: number): Promise<Knowledge[]> {
+    const project = await this.projectRepository.findOne({
+      where: { id: projectId },
+      relations: ['knowledges.media'],
+    });
+    return project.knowledges;
   }
 }
