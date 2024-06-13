@@ -8,6 +8,11 @@ export class FileInterceptor {
   createMulterOptions(): MulterOptions {
     return {
       fileFilter: (req, file, cb) => {
+        const totalFileSize = req.headers['content-length'];
+        if (totalFileSize > 1024 * 1024 * 30) {
+          req.fileValidationError = 'File size is to large. Accepted file size is less than 30MB';
+          cb(null, false);
+        }
         if (file.mimetype.startsWith('video/')) {
           if (file.size > 1024 * 1024 * 15) {
             req.fileValidationError = 'File size is to large. Accepted file size is less than 15MB';

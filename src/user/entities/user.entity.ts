@@ -60,6 +60,9 @@ export class User {
   })
   role: Role;
 
+  @Column({ nullable: true })
+  userCreateId: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

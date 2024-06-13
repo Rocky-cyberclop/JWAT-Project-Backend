@@ -40,8 +40,6 @@ require('dotenv').config();
         redis: {
           host: configService.get<string>('redisHost'),
           port: configService.get<number>('redisPort'),
-          // username: configService.get<string>('redisUsername'),
-          // password: configService.get<string>('redisPassword'),
         },
       }),
     }),

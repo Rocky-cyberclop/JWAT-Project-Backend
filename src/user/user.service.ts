@@ -37,7 +37,7 @@ export class UserService {
     return await this.userRepository.update(id, user);
   }
 
-  async create(createUserDto: CreateUserDto): Promise<ResponseUserDto> {
+  async create(adminId: number, createUserDto: CreateUserDto): Promise<ResponseUserDto> {
     const userExist = await this.userRepository.findOne({
       where: { username: createUserDto.username },
     });
@@ -47,6 +47,7 @@ export class UserService {
     const { dob } = createUserDto;
     const newUser = this.userRepository.create(createUserDto);
     newUser.dob = new Date(dob);
+    newUser.userCreateId = adminId;
     try {
       const result = await this.userRepository.save(newUser);
       if (result) {
@@ -56,11 +57,11 @@ export class UserService {
           username: newUser.username,
           password: newUser.username,
         };
-        await this.mailService.sendEmail(mailDto);
-        return plainToClass(ResponseUserDto, createUserDto);
+        this.mailService.sendEmail(mailDto);
+        return plainToClass(ResponseUserDto, result);
       }
     } catch (error) {
-      const errorMessage = error.detail;
+      const errorMessage = error.detail || error.message;
       const attributeName = errorMessage.match(/\("?(.*?)"?\)/)[1];
       if (error.code === '23505') {
         throw new HttpException(attributeName, HttpStatus.BAD_REQUEST);
@@ -153,7 +154,7 @@ export class UserService {
         this.updateAvatar(id, files);
       }
     } catch (error) {
-      const errorMessage = error.detail;
+      const errorMessage = error.detail || error.message;
       const attributeName = errorMessage.match(/\("?(.*?)"?\)/)[1];
       if (error.code === '23505') {
         throw new HttpException(attributeName, HttpStatus.BAD_REQUEST);
