@@ -29,10 +29,22 @@ import { ResponseProjectDto } from './dto/response-project-dto';
 import { AddUsersProjectRequest } from './dto/add-user-project-request.dto';
 import { ResponseUserDto } from 'src/user/dto/response-user.dto';
 import { UserNotInResponse } from './dto/user-not-in.dto';
+import { AddKnowledgeProjectDto } from './dto/add-knowledge-request.dto';
+import { Knowledge } from 'src/knowledge/entities/knowledge.entity';
 
 @Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
+
+  @Roles(Role.MANAGER)
+  @Post('knowledge')
+  @UseInterceptors(FilesInterceptor('files', 1, new FileInterceptor().createMulterOptions()))
+  addKnowledgeToProject(
+    @Body() addRequest: AddKnowledgeProjectDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<AddKnowledgeProjectDto> {
+    return this.projectService.addKnowledgeToProject(addRequest, files);
+  }
 
   @Roles(Role.MANAGER)
   @Post('addUsers')
@@ -52,6 +64,11 @@ export class ProjectController {
       throw new HttpException(req.fileValidationError, HttpStatus.BAD_REQUEST);
     }
     return this.projectService.create(req.user.id, createProjectDto, files);
+  }
+
+  @Get('knowledge/:id')
+  findKnowledgesInProject(@Param('id') id: number): Promise<Knowledge[]> {
+    return this.projectService.findKnowledgesInProject(id);
   }
 
   @Roles(Role.MANAGER)
@@ -105,6 +122,12 @@ export class ProjectController {
       throw new HttpException(req.fileValidationError, HttpStatus.BAD_REQUEST);
     }
     return this.projectService.update(+id, updateProjectDto, files);
+  }
+
+  @Roles(Role.MANAGER)
+  @Delete('knowledge/:id')
+  removeKnowledgeFromProject(@Param('id') id: number): Promise<DeleteResult> {
+    return this.projectService.removeKnowledgeFromProject(id);
   }
 
   @Roles(Role.MANAGER)

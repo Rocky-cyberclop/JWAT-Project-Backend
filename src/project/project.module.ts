@@ -7,9 +7,14 @@ import { UserProject } from 'src/user-project/entities/user-project.entity';
 import { User } from 'src/user/entities/user.entity';
 import { MediaModule } from 'src/media/media.module';
 import { MailModule } from 'src/mail/mail.module';
+import { Knowledge } from 'src/knowledge/entities/knowledge.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Project, UserProject, User]), MediaModule, MailModule],
+  imports: [
+    TypeOrmModule.forFeature([Project, UserProject, User, Knowledge]),
+    MediaModule,
+    MailModule,
+  ],
   controllers: [ProjectController],
   providers: [ProjectService],
   exports: [ProjectService],
