@@ -9,14 +9,37 @@
 ## Secound create an .env.development.local file contains
 
 ```
-  PORT=3000
+  PORT=3001
 
   # Database connection
-  DB_NAME="{your db name}"
-  DB_HOST="{your db host}"
-  DB_PORT={your db port}
-  DB_USERNAME="{your db name}"
-  DB_PASSWORD="{your db password}"
+  DB_NAME="{your database name}"
+  DB_HOST="{your database host}"
+  DB_PORT={your database port}
+  DB_USERNAME="{your database username}"
+  DB_PASSWORD="{your database password}"
+
+  # Token Key Validate User
+  ACCESS_TOKEN_KEY="{your access token jwt key}"
+  REFRESH_TOKEN_KEY="{your refresh token jwt key}"
+
+  # Cloudinary connection
+  CLOUDINARY_NAME={your cloudinary name}
+  CLOUDINARY_API_KEY={your cloudinary api key}
+  CLOUDINARY_API_SECRET={your cloudinary api secret}
+
+  # Mail Service
+  MAIL_HOST=smtp.gmail.com
+  MAIL_PORT=587
+  MAIL_USER={your email}
+  MAIL_PASSWORD={your email password}
+  DEFAULT_MAIL_FROM={your email}
+
+  # Redis connection
+  REDIS_HOST=localhost
+  REDIS_PORT=6379
+
+
+
 ```
 
 ## Third create database named JWAT-Knowledge-Sharing
