@@ -78,9 +78,18 @@ export class ProjectController {
   }
 
   @Roles(Role.MANAGER)
+  @Get('findUserNotIn/:id/searchUser')
+  findUserInProjectWithId(
+    @Param('id') id: number,
+    @Query('userId') userId: number = 1,
+  ): Promise<ResponseUserDto[]> {
+    return this.projectService.findUsersInProjectWithId(id, userId);
+  }
+
+  @Roles(Role.MANAGER)
   @Get('findUserNotIn')
   findUserNotInProject(
-    @Query('id', new DefaultValuePipe(1), ParseIntPipe) id: number = 1,
+    @Query('id') id: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
   ): Promise<UserNotInResponse> {
