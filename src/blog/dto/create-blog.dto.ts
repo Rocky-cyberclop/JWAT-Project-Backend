@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateBlogDto {
   @IsNotEmpty()
@@ -8,4 +8,9 @@ export class CreateBlogDto {
   @IsNotEmpty()
   @IsString()
   content: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  hashTags: string[];
 }
