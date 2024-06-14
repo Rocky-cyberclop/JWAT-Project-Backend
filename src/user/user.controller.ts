@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/decorator/roles.decorator';
-import { FileInterceptor } from 'src/interceptor/file.interceptor';
+import { FileInterceptor } from 'src/interceptor/media.interceptor';
 import { ChangePasswordUserDto } from './dto/change-password-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ResponseUserDto } from './dto/response-user.dto';

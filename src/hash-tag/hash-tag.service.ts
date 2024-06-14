@@ -35,4 +35,8 @@ export class HashTagService {
   async save(hashTag: HashTag): Promise<HashTag> {
     return await this.hashTagRepository.save(hashTag);
   }
+
+  async findByName(hashTagName: string): Promise<HashTag> {
+    return this.hashTagRepository.findOneBy({hashTagName})
+  }
 }
