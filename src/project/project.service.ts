@@ -74,7 +74,7 @@ export class ProjectService {
     const projects = new Array<ResponseProjectDto>();
     const projectPromise = userDoesProjects.map(async (userDoesProject: UserProject) => {
       const responseProject: ResponseProjectDto = {
-        id: userDoesProject.id,
+        id: userDoesProject.project.id,
         name: userDoesProject.project.name,
         description: userDoesProject.project.description,
         createdAt: userDoesProject.createdAt,

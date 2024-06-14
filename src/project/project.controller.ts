@@ -31,10 +31,21 @@ import { ResponseUserDto } from 'src/user/dto/response-user.dto';
 import { UserNotInResponse } from './dto/user-not-in.dto';
 import { AddKnowledgeProjectDto } from './dto/add-knowledge-request.dto';
 import { Knowledge } from 'src/knowledge/entities/knowledge.entity';
+import { DocumentInterceptor } from 'src/interceptor/document.interceptor';
 
 @Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
+
+  @Roles(Role.MANAGER)
+  @Post('document/:id')
+  @UseInterceptors(DocumentInterceptor)
+  addDocumentToProject(
+    @Param('id') id: number,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<void> {
+    return null;
+  }
 
   @Roles(Role.MANAGER)
   @Post('knowledge')
