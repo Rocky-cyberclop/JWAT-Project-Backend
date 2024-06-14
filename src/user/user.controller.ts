@@ -25,8 +25,8 @@ export class UserController {
 
   @Post('create')
   @Roles(Role.ADMIN)
-  create(@Body() createUserDto: CreateUserDto): Promise<ResponseUserDto> {
-    return this.userService.create(createUserDto);
+  create(@Req() req: any, @Body() createUserDto: CreateUserDto): Promise<ResponseUserDto> {
+    return this.userService.create(req.user.id, createUserDto);
   }
 
   @Get('current')

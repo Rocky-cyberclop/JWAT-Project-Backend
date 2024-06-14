@@ -41,10 +41,10 @@ export class BlogService {
     blog.content = createBlogDto.content;
     const saveBlog = await this.blogRepository.save(blog);
     if (createBlogDto.hashTags.length !== 0) {
-      await this.attachHashTag(createBlogDto.hashTags, saveBlog);
+      this.attachHashTag(createBlogDto.hashTags, saveBlog);
     }
     if (files.length !== 0) {
-      await this.attachMedia(files, saveBlog);
+      this.attachMedia(files, saveBlog);
     }
     return true;
   }
