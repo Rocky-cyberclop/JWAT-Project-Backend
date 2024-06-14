@@ -39,7 +39,7 @@ export class ProjectController {
 
   @Roles(Role.MANAGER)
   @Post('document/:id')
-  @UseInterceptors(FilesInterceptor('files', null, new DocumentInterceptor().createMulterOptions()))
+  @UseInterceptors(DocumentInterceptor)
   addDocumentToProject(
     @Param('id') id: number,
     @UploadedFiles() files: Express.Multer.File[],
