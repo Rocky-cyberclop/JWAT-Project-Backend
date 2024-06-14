@@ -4,6 +4,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Param,
   Patch,
   Post,
   Req,
@@ -30,8 +31,13 @@ export class UserController {
   }
 
   @Get('current')
-  findOne(@Req() req: any): Promise<ResponseUserDto> {
+  currentUser(@Req() req: any): Promise<ResponseUserDto> {
     return this.userService.findOne(req.user.id);
+  }
+
+  @Get(':id')
+  findById(@Param('id') id: number): Promise<ResponseUserDto> {
+    return this.userService.findOne(+id);
   }
 
   @Patch('update')
