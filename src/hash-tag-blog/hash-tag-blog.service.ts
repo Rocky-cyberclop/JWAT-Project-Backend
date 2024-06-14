@@ -35,4 +35,14 @@ export class HashTagBlogService {
   async save(hashTagBlog: HashTagBlog): Promise<HashTagBlog> {
     return await this.hashTagBlogRepository.save(hashTagBlog);
   }
+
+  async deleteByBlogIdAndHashTagId(blogId: number, hashTagId: number) {
+    const blogHashTag = await this.hashTagBlogRepository.findOne({
+      where: { blog: { id: blogId }, hashTag: { id: hashTagId } },
+    });
+    if (!blogHashTag) {
+      throw new Error('BlogHashTag relationship not found');
+    }
+    await this.hashTagBlogRepository.remove(blogHashTag);
+  }
 }

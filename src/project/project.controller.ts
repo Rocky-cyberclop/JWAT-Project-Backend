@@ -20,7 +20,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
 import { DeleteResult } from 'typeorm';
-import { FileInterceptor } from 'src/interceptor/file.interceptor';
+import { FileInterceptor } from 'src/interceptor/media.interceptor';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/decorator/roles.decorator';
 import { Role } from 'src/user/enums/roles.enum';

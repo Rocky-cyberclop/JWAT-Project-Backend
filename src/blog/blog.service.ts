@@ -66,13 +66,20 @@ export class BlogService {
 
   async attachHashTag(arrayHashTag: string[], blog: Blog) {
     arrayHashTag.forEach(async (ht) => {
-      const hashTag = new HashTag();
-      hashTag.hashTagName = ht;
-      const saveHashTag = await this.hashTagService.save(hashTag);
+      const hashTagExist = await this.hashTagService.findByName(ht);
       const hashTagBlog = new HashTagBlog();
-      hashTagBlog.blog = blog;
-      hashTagBlog.hashTag = saveHashTag;
-      await this.hashTagBlogService.save(hashTagBlog);
+      if (hashTagExist) {
+        hashTagBlog.blog = blog;
+        hashTagBlog.hashTag = hashTagExist;
+        await this.hashTagBlogService.save(hashTagBlog);
+      } else {
+        const hashTag = new HashTag();
+        hashTag.hashTagName = ht;
+        const saveHashTag = await this.hashTagService.save(hashTag);
+        hashTagBlog.blog = blog;
+        hashTagBlog.hashTag = saveHashTag;
+        await this.hashTagBlogService.save(hashTagBlog);
+      }
     });
   }
 
@@ -97,8 +104,49 @@ export class BlogService {
     });
   }
 
-  update(id: number, updateBlogDto: UpdateBlogDto) {
-    return `This action updates a #${id} blog`;
+  async update(id: number, updateBlogDto: UpdateBlogDto, files: Express.Multer.File[], userId:number): Promise<boolean> {
+    const user = await this.userService.findOne(userId);
+    const blog = await this.blogRepository.findOneBy({ id });
+    if (user.id !== blog.user.id) {
+      throw new HttpException('Not the owner', HttpStatus.BAD_REQUEST);
+    }
+    if (updateBlogDto.title) {
+      blog.title = updateBlogDto.title;
+    }
+    if (updateBlogDto.content) {
+      blog.content = updateBlogDto.content;
+    }
+    const saveBlog = await this.blogRepository.save(blog);
+    if (updateBlogDto.deleteHashTagIds || updateBlogDto.hashTags) {
+      this.updateHashTag(updateBlogDto.deleteHashTagIds, updateBlogDto.hashTags, saveBlog);
+    }
+
+    if (updateBlogDto.deleteMediaIds || files.length !== 0) {
+      this.updateMedia(updateBlogDto.deleteMediaIds, files, saveBlog);
+    }
+    return true;
+  }
+
+  async updateHashTag(deleteHashTagIds: number[], hashTags: string[], blog: Blog) {
+    if (deleteHashTagIds) {
+      deleteHashTagIds.forEach((ht) => {
+        this.hashTagBlogService.deleteByBlogIdAndHashTagId(blog.id, ht);
+      });
+    }
+    if (hashTags) {
+      this.attachHashTag(hashTags, blog);
+    }
+  }
+
+  async updateMedia(deleteMediaIds: number[], files: Express.Multer.File[], blog: Blog) {
+    if (deleteMediaIds) {
+      deleteMediaIds.forEach((md) => {
+        this.blogMediaService.deleteByBlogIdAndMediaId(blog.id, md);
+      });
+    }
+    if (files.length !== 0) {
+      this.attachMedia(files, blog);
+    }
   }
 
   async remove(id: number, userId: number): Promise<boolean> {
