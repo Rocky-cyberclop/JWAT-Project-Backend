@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { BlogMediaService } from 'src/blog-media/blog-media.service';
 import { BlogMedia } from 'src/blog-media/entities/blog-media.entity';
 import { HashTagBlog } from 'src/hash-tag-blog/entities/hash-tag-blog.entity';
@@ -14,6 +15,8 @@ import { Role } from 'src/user/enums/roles.enum';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { ResponseBlogDtoPag } from './dto/response-blog-pag.dto';
+import { ResponseBlogDto } from './dto/response-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { Blog } from './entities/blog.entity';
 
@@ -93,8 +96,8 @@ export class BlogService {
     });
   }
 
-  findOne(id: number) {
-    return this.blogRepository.findOne({
+  async findOne(id: number) {
+    return await this.blogRepository.findOne({
       where: { id },
       relations: {
         blogMedias: {
@@ -104,7 +107,30 @@ export class BlogService {
     });
   }
 
-  async update(id: number, updateBlogDto: UpdateBlogDto, files: Express.Multer.File[], userId:number): Promise<boolean> {
+  async findAllWithPag(options: IPaginationOptions) {
+    const queryBuilder = this.blogRepository
+      .createQueryBuilder('blog')
+      .leftJoinAndSelect('blog.blogMedias', 'blogMedias')
+      .leftJoinAndSelect('blogMedias.media', 'media')
+      .leftJoinAndSelect('blog.hashTagBlogs', 'hashTagBlogs')
+      .leftJoinAndSelect('hashTagBlogs.hashTag', 'hashTag')
+      .orderBy('blog.id', 'DESC');
+
+    const blogs = await paginate<Blog>(queryBuilder, options);
+    const blogsDto = new ResponseBlogDtoPag();
+    blogsDto.items = blogs.items.map((blog) => {
+      return plainToClass(ResponseBlogDto, blog);
+    });
+    blogsDto.meta = blogs.meta;
+    return blogsDto;
+  }
+
+  async update(
+    id: number,
+    updateBlogDto: UpdateBlogDto,
+    files: Express.Multer.File[],
+    userId: number,
+  ): Promise<boolean> {
     const user = await this.userService.findOne(userId);
     const blog = await this.blogRepository.findOneBy({ id });
     if (user.id !== blog.user.id) {

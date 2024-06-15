@@ -30,14 +30,14 @@ export class UserController {
     return this.userService.create(req.user.id, createUserDto);
   }
 
+  @Get('get-role')
+  getRole(@Req() req: any): Promise<Role> {
+    return this.userService.getRole(req.user.id);
+  }
+
   @Get('current')
   currentUser(@Req() req: any): Promise<ResponseUserDto> {
     return this.userService.findOne(req.user.id);
-  }
-
-  @Get(':id')
-  findById(@Param('id') id: number): Promise<ResponseUserDto> {
-    return this.userService.findOne(+id);
   }
 
   @Patch('update')
@@ -61,8 +61,8 @@ export class UserController {
     return this.userService.changePassword(req.user.id, changePasswordUserDto);
   }
 
-  @Get('get-role')
-  getRole(@Req() req: any): Promise<Role> {
-    return this.userService.getRole(req.user.id);
+  @Get(':id')
+  findById(@Param('id') id: number): Promise<ResponseUserDto> {
+    return this.userService.findOne(+id);
   }
 }
