@@ -7,16 +7,6 @@ import { UpdateBlogMediaDto } from './dto/update-blog-media.dto';
 export class BlogMediaController {
   constructor(private readonly blogMediaService: BlogMediaService) {}
 
-  @Post()
-  create(@Body() createBlogMediaDto: CreateBlogMediaDto) {
-    return this.blogMediaService.create(createBlogMediaDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.blogMediaService.findAll();
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.blogMediaService.findOne(+id);
@@ -30,5 +20,15 @@ export class BlogMediaController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.blogMediaService.remove(+id);
+  }
+
+  @Post()
+  create(@Body() createBlogMediaDto: CreateBlogMediaDto) {
+    return this.blogMediaService.create(createBlogMediaDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.blogMediaService.findAll();
   }
 }

@@ -7,7 +7,6 @@ import { MailService } from './mail.service';
 export class MailController {
   constructor(private readonly mailService: MailService) {}
 
-  @Public()
   @Post('/send-email')
   sendMail() {
     const dto: CreateUserMailDto = {
