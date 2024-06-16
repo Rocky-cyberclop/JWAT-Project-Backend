@@ -7,28 +7,28 @@ import { UpdateKnowledgeDto } from './dto/update-knowledge.dto';
 export class KnowledgeController {
   constructor(private readonly knowledgeService: KnowledgeService) {}
 
-  @Post()
-  create(@Body() createKnowledgeDto: CreateKnowledgeDto) {
-    return this.knowledgeService.create(createKnowledgeDto);
-  }
+  // @Post()
+  // create(@Body() createKnowledgeDto: CreateKnowledgeDto) {
+  //   return this.knowledgeService.create(createKnowledgeDto);
+  // }
 
-  @Get()
-  findAll() {
-    return this.knowledgeService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.knowledgeService.findAll();
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.knowledgeService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.knowledgeService.findOne(+id);
+  // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateKnowledgeDto: UpdateKnowledgeDto) {
-    return this.knowledgeService.update(+id, updateKnowledgeDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateKnowledgeDto: UpdateKnowledgeDto) {
+  //   return this.knowledgeService.update(+id, updateKnowledgeDto);
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.knowledgeService.remove(+id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.knowledgeService.remove(+id);
+  // }
 }
