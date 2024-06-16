@@ -12,6 +12,7 @@ async function bootstrap() {
 
   const port = configService.get<number>('port');
   app.useStaticAssets(join(__dirname, '/src/mail/templates'));
+  app.useStaticAssets(join(__dirname, '..', '..', '/uploads/documents'));
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

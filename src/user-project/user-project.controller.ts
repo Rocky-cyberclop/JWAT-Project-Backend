@@ -7,28 +7,28 @@ import { UpdateUserProjectDto } from './dto/update-user-project.dto';
 export class UserProjectController {
   constructor(private readonly userProjectService: UserProjectService) {}
 
-  @Post()
-  create(@Body() createUserProjectDto: CreateUserProjectDto) {
-    return this.userProjectService.create(createUserProjectDto);
-  }
+  // @Post()
+  // create(@Body() createUserProjectDto: CreateUserProjectDto) {
+  //   return this.userProjectService.create(createUserProjectDto);
+  // }
 
-  @Get()
-  findAll() {
-    return this.userProjectService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.userProjectService.findAll();
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userProjectService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.userProjectService.findOne(+id);
+  // }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserProjectDto: UpdateUserProjectDto) {
-    return this.userProjectService.update(+id, updateUserProjectDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateUserProjectDto: UpdateUserProjectDto) {
+  //   return this.userProjectService.update(+id, updateUserProjectDto);
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userProjectService.remove(+id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.userProjectService.remove(+id);
+  // }
 }

@@ -18,6 +18,9 @@ export class Document {
   @Column({ length: 100 })
   name: string;
 
+  @Column({ length: 100 })
+  url: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
