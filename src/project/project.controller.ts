@@ -117,14 +117,14 @@ export class ProjectController {
     return this.projectService.getDocumentByName(id, name);
   }
 
-  @Get('findUserNotIn/:id/searchUser')
-  @Roles(Role.MANAGER)
-  findUserInProjectWithId(
-    @Param('id') id: number,
-    @Query('userId') userId: number,
-  ): Promise<ResponseUserDto[]> {
-    return this.projectService.findUsersInProjectWithId(id, userId);
-  }
+  // @Get('findUserNotIn/:id/searchUser')
+  // @Roles(Role.MANAGER)
+  // findUserInProjectWithId(
+  //   @Param('id') id: number,
+  //   @Query('userId') userId: number,
+  // ): Promise<ResponseUserDto[]> {
+  //   return this.projectService.findUsersInProjectWithId(id, userId);
+  // }
 
   @Get('document/:id')
   getDocumentsFromProject(@Param('id') id: number): Promise<Document[]> {
@@ -146,10 +146,11 @@ export class ProjectController {
   @Roles(Role.MANAGER)
   findUserNotInProject(
     @Query('id') id: number,
+    @Query('userId') userId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
-  ): Promise<UserNotInResponse> {
-    return this.projectService.findUsersNotInProject({ page, limit }, id);
+  ): Promise<UserNotInResponse | ResponseUserDto[]> {
+    return this.projectService.findUsersNotInProject({ page, limit }, id, +userId);
   }
 
   @Get('user')
