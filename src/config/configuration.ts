@@ -23,4 +23,6 @@ export default () => ({
   //Redis connection
   redisHost: process.env.REDIS_HOST,
   redisPort: process.env.REDIS_PORT,
+  //Elastic connection
+  elasticNode: process.env.ELASTICSEARCH_NODE,
 });

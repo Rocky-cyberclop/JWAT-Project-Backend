@@ -14,6 +14,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Role } from 'src/user/enums/roles.enum';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
+import { BlogSearchService } from './blog.search.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { ResponseBlogDtoPag } from './dto/response-blog-pag.dto';
 import { ResponseBlogDto } from './dto/response-blog.dto';
@@ -22,6 +23,7 @@ import { Blog } from './entities/blog.entity';
 
 @Injectable()
 export class BlogService {
+  private index = 'blogs';
   constructor(
     @InjectRepository(Blog)
     private readonly blogRepository: Repository<Blog>,
@@ -30,6 +32,7 @@ export class BlogService {
     private readonly blogMediaService: BlogMediaService,
     private readonly hashTagService: HashTagService,
     private readonly hashTagBlogService: HashTagBlogService,
+    private readonly blogSearchService: BlogSearchService,
   ) {}
 
   async create(
@@ -43,6 +46,7 @@ export class BlogService {
     blog.title = createBlogDto.title;
     blog.content = createBlogDto.content;
     const saveBlog = await this.blogRepository.save(blog);
+    this.blogSearchService.indexBlog(blog);
     if (createBlogDto.hashTags.length !== 0) {
       this.attachHashTag(createBlogDto.hashTags, saveBlog);
     }
@@ -50,6 +54,31 @@ export class BlogService {
       this.attachMedia(files, saveBlog);
     }
     return true;
+  }
+
+  async searchForBlogs(text: string, options: IPaginationOptions): Promise<ResponseBlogDtoPag> {
+    if (text) {
+      const searchResult = await this.blogSearchService.search(text);
+      const ids = searchResult.map((result) => result.id);
+      if (!ids.length) {
+        return await this.findAllWithPag(options);
+      }
+      const queryBuilder = this.blogRepository
+        .createQueryBuilder('blog')
+        .where('blog.id IN (:...ids)', { ids })
+        .leftJoinAndSelect('blog.blogMedias', 'blogMedias')
+        .leftJoinAndSelect('blogMedias.media', 'media')
+        .leftJoinAndSelect('blog.hashTagBlogs', 'hashTagBlogs')
+        .leftJoinAndSelect('hashTagBlogs.hashTag', 'hashTag');
+      const blogs = await paginate<Blog>(queryBuilder, options);
+      const blogsDto = new ResponseBlogDtoPag();
+      blogsDto.items = blogs.items.map((blog) => {
+        return plainToClass(ResponseBlogDto, blog);
+      });
+      blogsDto.meta = blogs.meta;
+      return blogsDto;
+    }
+    return await this.findAllWithPag(options);
   }
 
   async attachMedia(files: Express.Multer.File[], blog: Blog) {
@@ -92,6 +121,9 @@ export class BlogService {
         blogMedias: {
           media: true,
         },
+        hashTagBlogs: {
+          hashTag: true,
+        },
       },
     });
   }
@@ -102,6 +134,9 @@ export class BlogService {
       relations: {
         blogMedias: {
           media: true,
+        },
+        hashTagBlogs: {
+          hashTag: true,
         },
       },
     });

@@ -16,12 +16,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { Public } from 'src/decorator/public.decorator';
 import { Roles } from 'src/decorator/roles.decorator';
 import { FileInterceptor } from 'src/interceptor/media.interceptor';
 import { Role } from 'src/user/enums/roles.enum';
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { ResponseBlogDtoPag } from './dto/response-blog-pag.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @Controller('blog')
@@ -42,7 +42,15 @@ export class BlogController {
     return this.blogService.create(req.user.id, createBlogDto, files);
   }
 
-  @Public()
+  @Get('search')
+  search(
+    @Query('text') searchString: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+  ): Promise<ResponseBlogDtoPag> {
+    return this.blogService.searchForBlogs(searchString, { limit, page });
+  }
+
   @Get('all')
   getAllWithPag(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
