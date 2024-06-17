@@ -3,7 +3,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, In, Repository } from 'typeorm';
+import { DeleteResult, In, Like, Repository } from 'typeorm';
 import { UserProject } from 'src/user-project/entities/user-project.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Media } from 'src/media/entities/media.entity';
@@ -20,6 +20,12 @@ import { MailService } from 'src/mail/mail.service';
 import { MutateProjectMailDto } from 'src/mail/dto/mail-info-mutate-project.dto';
 import { Knowledge } from 'src/knowledge/entities/knowledge.entity';
 import { AddKnowledgeProjectDto } from './dto/add-knowledge-request.dto';
+import { Document } from 'src/document/entities/document.entity';
+import { DocumentGroup } from 'src/document/entities/document.group.entity';
+import * as fs from 'fs-extra';
+import { GroupingDocumentRequest } from './dto/group-document-request.dto';
+import { UnGroupDocumentRequest } from './dto/ungroup-document.dto';
+import { UpdateGroupDocumentRequest } from './dto/update-group-request.dto';
 
 @Injectable()
 export class ProjectService {
@@ -32,6 +38,10 @@ export class ProjectService {
     private knowledgeRepository: Repository<Knowledge>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Document)
+    private documentRepository: Repository<Document>,
+    @InjectRepository(DocumentGroup)
+    private documentGroupRepository: Repository<DocumentGroup>,
     private readonly mediaService: MediaService,
     private readonly mailService: MailService,
   ) {}
@@ -151,21 +161,32 @@ export class ProjectService {
   async findUsersNotInProject(
     options: IPaginationOptions,
     projectId: number,
-  ): Promise<UserNotInResponse> {
-    const queryBuilder = this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.userProjects', 'userProject', 'userProject.projectId = :projectId', {
-        projectId,
-      })
-      .where('userProject.projectId IS NULL')
-      .orderBy('user.id', 'ASC');
-
-    const userNotIn = await paginate<User>(queryBuilder, options);
-    const userNotInResponse = new UserNotInResponse();
-    userNotInResponse.items = userNotIn.items.map((user) => {
-      return plainToClass(ResponseUserDto, user);
-    });
-    userNotInResponse.meta = userNotIn.meta;
+    userId: number,
+  ): Promise<UserNotInResponse | ResponseUserDto[]> {
+    let userNotInResponse: UserNotInResponse | ResponseUserDto[];
+    if (userId !== 0) {
+      userNotInResponse = await this.findUsersInProjectWithId(projectId, userId);
+    } else {
+      const queryBuilder = this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect(
+          'user.userProjects',
+          'userProject',
+          'userProject.projectId = :projectId',
+          {
+            projectId,
+          },
+        )
+        .leftJoinAndSelect('user.media', 'media')
+        .where('userProject.projectId IS NULL')
+        .orderBy('user.id', 'ASC');
+      const userNotIn = await paginate<User>(queryBuilder, options);
+      userNotInResponse = new UserNotInResponse();
+      userNotInResponse.items = userNotIn.items.map((user) => {
+        return plainToClass(ResponseUserDto, user);
+      });
+      userNotInResponse.meta = userNotIn.meta;
+    }
     return userNotInResponse;
   }
 
@@ -182,7 +203,7 @@ export class ProjectService {
       },
     });
     if (usersNotIn.length === 0) {
-      const users = await this.userRepository.find({ where: { id: userId } });
+      const users = await this.userRepository.find({ relations: ['media'], where: { id: userId } });
       return users.map((user) => {
         return plainToClass(ResponseUserDto, user);
       });
@@ -190,8 +211,6 @@ export class ProjectService {
     return [];
   }
 
-  // Haven't tested the send mail when add users to project,
-  // The foreach also has async, it maybe can make the multi thread processes
   async addUsersToProject(addRequest: AddUsersProjectRequest): Promise<AddUsersProjectRequest> {
     const users = await this.userRepository.find({ where: { id: In(addRequest.users) } });
     const project = await this.projectRepository.findOne({ where: { id: addRequest.project } });
@@ -220,7 +239,7 @@ export class ProjectService {
 
   async findUsersInProject(projectId: number): Promise<ResponseUserDto[]> {
     const userProjects = await this.userProjectRepository.find({
-      relations: ['user'],
+      relations: ['user.media'],
       where: { project: { id: projectId } },
     });
     return userProjects.map((userProject): ResponseUserDto => {
@@ -282,5 +301,168 @@ export class ProjectService {
       relations: ['knowledges.media'],
     });
     return project.knowledges;
+  }
+
+  async addDocuments(projectId: number, files: Express.Multer.File[]): Promise<Document[]> {
+    const documents = new Array<Document>();
+    await Promise.all(
+      files.map(async (file) => {
+        const document = new Document();
+        document.name = file.originalname;
+        document.url = file.filename;
+        document.project = await this.projectRepository.findOne({ where: { id: projectId } });
+        documents.push(document);
+      }),
+    );
+    const savedDocuments = await this.documentRepository.save(documents);
+    let documentGroup = (
+      await this.documentRepository.findOne({
+        relations: ['documentGroup.documents', 'project'],
+        where: { project: { id: projectId } },
+        order: { documentGroup: { id: 'ASC' } },
+      })
+    ).documentGroup;
+    if (!documentGroup) {
+      documentGroup = new DocumentGroup();
+      documentGroup.name = 'Root';
+      documentGroup.documents = new Array<Document>();
+      documentGroup.documents = savedDocuments;
+    } else {
+      documentGroup.documents = [...documentGroup.documents, ...documents];
+    }
+    await this.documentGroupRepository.save(documentGroup);
+    return savedDocuments;
+  }
+
+  async getDocuments(projectId: number): Promise<Document[]> {
+    return await this.documentRepository.find({
+      relations: ['project'],
+      where: { project: { id: projectId } },
+    });
+  }
+
+  async deleteDocument(documentId: number): Promise<DeleteResult> {
+    const document = await this.documentRepository.findOne({ where: { id: documentId } });
+    try {
+      await fs.unlink(`./uploads/documents/${document.url}`);
+    } catch (ex) {
+      throw new Error(`Failed to delete file ${document.url}: ${ex.message}`);
+    }
+    return this.documentRepository.softDelete(documentId);
+  }
+
+  async groupingDocument(
+    groupingDocumentRequest: GroupingDocumentRequest,
+  ): Promise<GroupingDocumentRequest> {
+    const group = new DocumentGroup();
+    group.parent = await this.documentGroupRepository.findOne({
+      where: { id: groupingDocumentRequest.parent },
+    });
+    group.name = groupingDocumentRequest.name;
+    const documents = new Array<Document>();
+    await Promise.all(
+      groupingDocumentRequest.documents.map(async (document) => {
+        documents.push(await this.documentRepository.findOne({ where: { id: document } }));
+      }),
+    );
+    group.documents = documents;
+    await this.documentGroupRepository.save(group);
+    return groupingDocumentRequest;
+  }
+
+  async ungroupDocument(
+    ungroupDocumentRequest: UnGroupDocumentRequest,
+  ): Promise<UnGroupDocumentRequest> {
+    const documentGroup = (
+      await this.documentRepository.findOne({
+        relations: ['documentGroup.documents', 'project'],
+        where: { project: { id: ungroupDocumentRequest.project } },
+        order: { documentGroup: { id: 'ASC' } },
+      })
+    ).documentGroup;
+    const documents = await this.documentRepository.find({
+      where: { id: In(ungroupDocumentRequest.documents) },
+    });
+    documentGroup.documents = [...documentGroup.documents, ...documents];
+    await this.documentGroupRepository.save(documentGroup);
+    return ungroupDocumentRequest;
+  }
+
+  async removeGroupDocument(id: number): Promise<DeleteResult> {
+    let result;
+    try {
+      result = await this.documentGroupRepository.delete(id);
+    } catch (ex) {
+      if (ex.code === '23503')
+        throw new HttpException(
+          'You need to delete all documents and the children group inside before delete this group!',
+          HttpStatus.CONFLICT,
+        );
+    }
+    return result;
+  }
+
+  async updateGroupDocument(updateGroup: UpdateGroupDocumentRequest): Promise<DocumentGroup> {
+    const group = await this.documentGroupRepository.findOne({
+      relations: ['documents'],
+      where: { id: updateGroup.id },
+    });
+    group.name = updateGroup.name;
+    updateGroup.removeDocuments.forEach((id) => {
+      group.documents = group.documents.filter((document) => {
+        return document.id !== id;
+      });
+    });
+    await Promise.all(
+      updateGroup.addDocuments.map(async (id) => {
+        group.documents.push(await this.documentRepository.findOne({ where: { id: id } }));
+      }),
+    );
+    return this.documentGroupRepository.save(group);
+  }
+
+  async getDocumentInGroup(projectId: number): Promise<any> {
+    const documentGroup = (
+      await this.documentRepository.findOne({
+        relations: ['documentGroup.children', 'documentGroup.documents', 'project'],
+        where: { project: { id: projectId } },
+        order: { documentGroup: { id: 'ASC' } },
+      })
+    ).documentGroup;
+    documentGroup.children = await Promise.all(
+      documentGroup.children.map(async (documentGroup) => {
+        return await this.getGroupHierachy(documentGroup);
+      }),
+    );
+    return documentGroup;
+  }
+
+  /**
+   * This function is a recursion function and it will find all the Document Group hierachy of a project
+   * @param current a Document Group
+   * @returns a Document Group which is a child of the current parameter
+   */
+  async getGroupHierachy(current: DocumentGroup) {
+    if (!current) return null;
+    const documentGroup = await this.documentGroupRepository.findOne({
+      relations: ['children', 'documents'],
+      where: { id: current.id },
+    });
+    documentGroup.children = await Promise.all(
+      documentGroup.children.map(async (documentGroup) => {
+        return await this.getGroupHierachy(documentGroup);
+      }),
+    );
+    return documentGroup;
+  }
+
+  async getDocumentByName(projectId: number, documentName: string): Promise<Document[]> {
+    return await this.documentRepository.find({
+      relations: ['project'],
+      where: {
+        project: { id: projectId },
+        name: Like('%' + documentName + '%'),
+      },
+    });
   }
 }

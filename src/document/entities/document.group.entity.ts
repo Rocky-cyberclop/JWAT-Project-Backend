@@ -1,4 +1,4 @@
-import { PrimaryGeneratedColumn, Column, OneToMany, Entity } from 'typeorm';
+import { PrimaryGeneratedColumn, Column, OneToMany, Entity, ManyToOne } from 'typeorm';
 import { Document } from './document.entity';
 
 @Entity({ name: 'document_group' })
@@ -9,4 +9,8 @@ export class DocumentGroup {
   name: string;
   @OneToMany(() => Document, (document) => document.documentGroup)
   documents: Document[];
+  @ManyToOne(() => DocumentGroup, (documentGroup) => documentGroup.children)
+  parent: DocumentGroup;
+  @OneToMany(() => DocumentGroup, (documentGroup) => documentGroup.parent)
+  children: DocumentGroup[];
 }

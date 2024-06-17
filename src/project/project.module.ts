@@ -8,10 +8,12 @@ import { User } from 'src/user/entities/user.entity';
 import { MediaModule } from 'src/media/media.module';
 import { MailModule } from 'src/mail/mail.module';
 import { Knowledge } from 'src/knowledge/entities/knowledge.entity';
+import { DocumentGroup } from 'src/document/entities/document.group.entity';
+import { Document } from 'src/document/entities/document.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Project, UserProject, User, Knowledge]),
+    TypeOrmModule.forFeature([Project, UserProject, User, Knowledge, Document, DocumentGroup]),
     MediaModule,
     MailModule,
   ],
