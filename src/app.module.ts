@@ -24,6 +24,7 @@ import { ProjectModule } from './project/project.module';
 import { StarDetailModule } from './star-detail/star-detail.module';
 import { UserProjectModule } from './user-project/user-project.module';
 import { UserModule } from './user/user.module';
+import { SearchModule } from './search/search.module';
 require('dotenv').config();
 
 @Module({
@@ -59,6 +60,7 @@ require('dotenv').config();
     MediaModule,
     BlogMediaModule,
     MailModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [
