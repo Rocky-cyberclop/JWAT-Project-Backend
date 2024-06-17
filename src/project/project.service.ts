@@ -167,6 +167,7 @@ export class ProjectService {
       .leftJoinAndSelect('user.userProjects', 'userProject', 'userProject.projectId = :projectId', {
         projectId,
       })
+      .leftJoinAndSelect('user.media', 'media')
       .where('userProject.projectId IS NULL')
       .orderBy('user.id', 'ASC');
 
@@ -192,7 +193,7 @@ export class ProjectService {
       },
     });
     if (usersNotIn.length === 0) {
-      const users = await this.userRepository.find({ where: { id: userId } });
+      const users = await this.userRepository.find({ relations: ['media'], where: { id: userId } });
       return users.map((user) => {
         return plainToClass(ResponseUserDto, user);
       });
