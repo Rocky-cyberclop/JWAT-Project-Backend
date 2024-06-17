@@ -161,22 +161,32 @@ export class ProjectService {
   async findUsersNotInProject(
     options: IPaginationOptions,
     projectId: number,
-  ): Promise<UserNotInResponse> {
-    const queryBuilder = this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.userProjects', 'userProject', 'userProject.projectId = :projectId', {
-        projectId,
-      })
-      .leftJoinAndSelect('user.media', 'media')
-      .where('userProject.projectId IS NULL')
-      .orderBy('user.id', 'ASC');
-
-    const userNotIn = await paginate<User>(queryBuilder, options);
-    const userNotInResponse = new UserNotInResponse();
-    userNotInResponse.items = userNotIn.items.map((user) => {
-      return plainToClass(ResponseUserDto, user);
-    });
-    userNotInResponse.meta = userNotIn.meta;
+    userId: number,
+  ): Promise<UserNotInResponse | ResponseUserDto[]> {
+    let userNotInResponse: UserNotInResponse | ResponseUserDto[];
+    if (userId !== 0) {
+      userNotInResponse = await this.findUsersInProjectWithId(projectId, userId);
+    } else {
+      const queryBuilder = this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect(
+          'user.userProjects',
+          'userProject',
+          'userProject.projectId = :projectId',
+          {
+            projectId,
+          },
+        )
+        .leftJoinAndSelect('user.media', 'media')
+        .where('userProject.projectId IS NULL')
+        .orderBy('user.id', 'ASC');
+      const userNotIn = await paginate<User>(queryBuilder, options);
+      userNotInResponse = new UserNotInResponse();
+      userNotInResponse.items = userNotIn.items.map((user) => {
+        return plainToClass(ResponseUserDto, user);
+      });
+      userNotInResponse.meta = userNotIn.meta;
+    }
     return userNotInResponse;
   }
 
@@ -229,7 +239,7 @@ export class ProjectService {
 
   async findUsersInProject(projectId: number): Promise<ResponseUserDto[]> {
     const userProjects = await this.userProjectRepository.find({
-      relations: ['user'],
+      relations: ['user.media'],
       where: { project: { id: projectId } },
     });
     return userProjects.map((userProject): ResponseUserDto => {
