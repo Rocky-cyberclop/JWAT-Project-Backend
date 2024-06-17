@@ -111,11 +111,17 @@ export class ProjectController {
     res.sendFile(filePath);
   }
 
+  @Get('document/:id/search')
+  @Roles(Role.MANAGER)
+  getDocumentByName(@Param('id') id: number, @Query('name') name: string): Promise<Document[]> {
+    return this.projectService.getDocumentByName(id, name);
+  }
+
   @Get('findUserNotIn/:id/searchUser')
   @Roles(Role.MANAGER)
   findUserInProjectWithId(
     @Param('id') id: number,
-    @Query('userId') userId: number = 1,
+    @Query('userId') userId: number,
   ): Promise<ResponseUserDto[]> {
     return this.projectService.findUsersInProjectWithId(id, userId);
   }

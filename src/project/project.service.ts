@@ -3,7 +3,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Project } from './entities/project.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, In, Repository } from 'typeorm';
+import { DeleteResult, In, Like, Repository } from 'typeorm';
 import { UserProject } from 'src/user-project/entities/user-project.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Media } from 'src/media/entities/media.entity';
@@ -443,5 +443,15 @@ export class ProjectService {
       }),
     );
     return documentGroup;
+  }
+
+  async getDocumentByName(projectId: number, documentName: string): Promise<Document[]> {
+    return await this.documentRepository.find({
+      relations: ['project'],
+      where: {
+        project: { id: projectId },
+        name: Like('%' + documentName + '%'),
+      },
+    });
   }
 }
