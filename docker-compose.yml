@@ -26,6 +26,8 @@ services:
     image: redis
     ports:
       - 6379:6379
+    volumes:
+      - redis-data:/data
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 2s
@@ -63,3 +65,37 @@ services:
 
 volumes:
   postgres-data:
+  redis-data:
+
+
+# version: "3"
+
+# services:
+#   elasticsearch:
+#     image: docker.elastic.co/elasticsearch/elasticsearch:8.14.1
+#     container_name: elasticsearch
+#     environment:
+#       - node.name=elasticsearch
+#       - cluster.name=datasearch
+#       - xpack.security.enabled=false
+#       - bootstrap.memory_lock=true
+#       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+#       - cluster.initial_master_nodes=elasticsearch
+#     ulimits:
+#       memlock:
+#         soft: -1
+#         hard: -1
+#     ports:
+#       - "9200:9200"
+#     volumes:
+#       - esdata:/usr/share/elasticsearch/data
+
+## No need to use this container
+#   kibana:
+#     image: docker.elastic.co/kibana/kibana:8.14.1
+#     ports:
+#       - "5601:5601"
+
+# volumes:
+#   esdata:
+#     driver: local
