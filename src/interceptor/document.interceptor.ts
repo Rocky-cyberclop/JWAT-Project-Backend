@@ -18,7 +18,14 @@ export class DocumentInterceptor {
         },
       }),
       fileFilter: (req, file, cb) => {
-        const allowedMimeTypes = ['presentation', 'msword', 'text/plain', 'sheet', 'pdf'];
+        const allowedMimeTypes = [
+          'presentation',
+          'msword',
+          'text/plain',
+          'sheet',
+          'pdf',
+          'wordprocessingml.document',
+        ];
         if (!allowedMimeTypes.some((type) => file.mimetype.includes(type))) {
           req.fileValidationError = `Wrong extension type. Accepted file ext are: ${allowedMimeTypes.join(', ')}`;
           return cb(new HttpException(req.fileValidationError, HttpStatus.BAD_REQUEST), false);
