@@ -66,6 +66,12 @@ export class BlogService {
       const queryBuilder = this.blogRepository
         .createQueryBuilder('blog')
         .where('blog.id IN (:...ids)', { ids })
+        .leftJoinAndSelect('blog.starDetails', 'starDetails')
+        .leftJoin('starDetails.user', 'userStar')
+        .addSelect('userStar.id')
+        .leftJoinAndSelect('blog.comments', 'comments')
+        .leftJoinAndSelect('comments.user', 'user')
+        .leftJoinAndSelect('user.media', 'userMedia')
         .leftJoinAndSelect('blog.blogMedias', 'blogMedias')
         .leftJoinAndSelect('blogMedias.media', 'media')
         .leftJoinAndSelect('blog.hashTagBlogs', 'hashTagBlogs')
@@ -142,15 +148,20 @@ export class BlogService {
     });
   }
 
-  async findAllWithPag(options: IPaginationOptions) {
+  async findAllWithPag(options: IPaginationOptions): Promise<ResponseBlogDtoPag> {
     const queryBuilder = this.blogRepository
       .createQueryBuilder('blog')
+      .leftJoinAndSelect('blog.starDetails', 'starDetails')
+      .leftJoin('starDetails.user', 'userStar')
+      .addSelect('userStar.id')
+      .leftJoinAndSelect('blog.comments', 'comments')
+      .leftJoinAndSelect('comments.user', 'user')
+      .leftJoinAndSelect('user.media', 'userMedia')
       .leftJoinAndSelect('blog.blogMedias', 'blogMedias')
       .leftJoinAndSelect('blogMedias.media', 'media')
       .leftJoinAndSelect('blog.hashTagBlogs', 'hashTagBlogs')
       .leftJoinAndSelect('hashTagBlogs.hashTag', 'hashTag')
       .orderBy('blog.id', 'DESC');
-
     const blogs = await paginate<Blog>(queryBuilder, options);
     const blogsDto = new ResponseBlogDtoPag();
     blogsDto.items = blogs.items.map((blog) => {
@@ -181,7 +192,6 @@ export class BlogService {
     if (updateBlogDto.deleteHashTagIds || updateBlogDto.hashTags) {
       this.updateHashTag(updateBlogDto.deleteHashTagIds, updateBlogDto.hashTags, saveBlog);
     }
-
     if (updateBlogDto.deleteMediaIds || files.length !== 0) {
       this.updateMedia(updateBlogDto.deleteMediaIds, files, saveBlog);
     }
@@ -212,7 +222,12 @@ export class BlogService {
 
   async remove(id: number, userId: number): Promise<boolean> {
     const user = await this.userService.findOne(userId);
-    const blog = await this.blogRepository.findOneBy({ id });
+    const blog = await this.blogRepository.findOne({
+      where: { id },
+      relations: {
+        user: true,
+      },
+    });
     if (user.role === Role.EMPLOYEE && user.id !== blog.user.id) {
       throw new HttpException('Not the owner', HttpStatus.BAD_REQUEST);
     }

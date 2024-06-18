@@ -1,34 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Param, Req } from '@nestjs/common';
+import { Roles } from 'src/decorator/roles.decorator';
+import { Role } from 'src/user/enums/roles.enum';
 import { StarDetailService } from './star-detail.service';
-import { CreateStarDetailDto } from './dto/create-star-detail.dto';
-import { UpdateStarDetailDto } from './dto/update-star-detail.dto';
 
 @Controller('star-detail')
 export class StarDetailController {
   constructor(private readonly starDetailService: StarDetailService) {}
 
-  @Post()
-  create(@Body() createStarDetailDto: CreateStarDetailDto) {
-    return this.starDetailService.create(createStarDetailDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.starDetailService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.starDetailService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStarDetailDto: UpdateStarDetailDto) {
-    return this.starDetailService.update(+id, updateStarDetailDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.starDetailService.remove(+id);
+  @Roles(Role.MANAGER, Role.EMPLOYEE)
+  @Get(':blogId')
+  async createOrRemove(@Req() req: any, @Param('blogId') blogId: number) {
+    await this.starDetailService.createOrRemove(req.user.id, blogId);
+    return true;
   }
 }
