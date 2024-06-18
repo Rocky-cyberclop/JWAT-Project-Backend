@@ -215,24 +215,26 @@ export class ProjectService {
     const users = await this.userRepository.find({ where: { id: In(addRequest.users) } });
     const project = await this.projectRepository.findOne({ where: { id: addRequest.project } });
     const userProjects = new Array<UserProject>();
-    users.forEach(async (user) => {
-      if (user.role === Role.MANAGER)
-        throw new HttpException(
-          `You can not add ${user.fullName} to this project cause he or she is a manager`,
-          HttpStatus.BAD_REQUEST,
-        );
-      const userProject = new UserProject();
-      userProject.user = user;
-      userProject.project = project;
-      userProject.role = user.role;
-      userProjects.push(userProject);
-      const mailDto: MutateProjectMailDto = {
-        recipients: [{ name: user.fullName, address: user.email }],
-        subject: 'Added to a new project',
-        project: project.name,
-      };
-      await this.mailService.sendEmailAddToProject(mailDto);
-    });
+    await Promise.all(
+      users.map(async (user) => {
+        if (user.role === Role.MANAGER)
+          throw new HttpException(
+            `You can not add ${user.fullName} to this project cause he or she is a manager`,
+            HttpStatus.BAD_REQUEST,
+          );
+        const userProject = new UserProject();
+        userProject.user = user;
+        userProject.project = project;
+        userProject.role = user.role;
+        userProjects.push(userProject);
+        const mailDto: MutateProjectMailDto = {
+          recipients: [{ name: user.fullName, address: user.email }],
+          subject: 'Added to a new project',
+          project: project.name,
+        };
+        await this.mailService.sendEmailAddToProject(mailDto);
+      }),
+    );
     await this.userProjectRepository.save(userProjects);
     return addRequest;
   }
