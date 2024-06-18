@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { BlogMediaService } from 'src/blog-media/blog-media.service';
 import { BlogMedia } from 'src/blog-media/entities/blog-media.entity';
 import { HashTagBlog } from 'src/hash-tag-blog/entities/hash-tag-blog.entity';
@@ -13,12 +14,16 @@ import { User } from 'src/user/entities/user.entity';
 import { Role } from 'src/user/enums/roles.enum';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
+import { BlogSearchService } from './blog.search.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { ResponseBlogDtoPag } from './dto/response-blog-pag.dto';
+import { ResponseBlogDto } from './dto/response-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { Blog } from './entities/blog.entity';
 
 @Injectable()
 export class BlogService {
+  private index = 'blogs';
   constructor(
     @InjectRepository(Blog)
     private readonly blogRepository: Repository<Blog>,
@@ -27,6 +32,7 @@ export class BlogService {
     private readonly blogMediaService: BlogMediaService,
     private readonly hashTagService: HashTagService,
     private readonly hashTagBlogService: HashTagBlogService,
+    private readonly blogSearchService: BlogSearchService,
   ) {}
 
   async create(
@@ -40,6 +46,7 @@ export class BlogService {
     blog.title = createBlogDto.title;
     blog.content = createBlogDto.content;
     const saveBlog = await this.blogRepository.save(blog);
+    this.blogSearchService.indexBlog(blog);
     if (createBlogDto.hashTags.length !== 0) {
       this.attachHashTag(createBlogDto.hashTags, saveBlog);
     }
@@ -47,6 +54,31 @@ export class BlogService {
       this.attachMedia(files, saveBlog);
     }
     return true;
+  }
+
+  async searchForBlogs(text: string, options: IPaginationOptions): Promise<ResponseBlogDtoPag> {
+    if (text) {
+      const searchResult = await this.blogSearchService.search(text);
+      const ids = searchResult.map((result) => result.id);
+      if (!ids.length) {
+        return await this.findAllWithPag(options);
+      }
+      const queryBuilder = this.blogRepository
+        .createQueryBuilder('blog')
+        .where('blog.id IN (:...ids)', { ids })
+        .leftJoinAndSelect('blog.blogMedias', 'blogMedias')
+        .leftJoinAndSelect('blogMedias.media', 'media')
+        .leftJoinAndSelect('blog.hashTagBlogs', 'hashTagBlogs')
+        .leftJoinAndSelect('hashTagBlogs.hashTag', 'hashTag');
+      const blogs = await paginate<Blog>(queryBuilder, options);
+      const blogsDto = new ResponseBlogDtoPag();
+      blogsDto.items = blogs.items.map((blog) => {
+        return plainToClass(ResponseBlogDto, blog);
+      });
+      blogsDto.meta = blogs.meta;
+      return blogsDto;
+    }
+    return await this.findAllWithPag(options);
   }
 
   async attachMedia(files: Express.Multer.File[], blog: Blog) {
@@ -66,13 +98,20 @@ export class BlogService {
 
   async attachHashTag(arrayHashTag: string[], blog: Blog) {
     arrayHashTag.forEach(async (ht) => {
-      const hashTag = new HashTag();
-      hashTag.hashTagName = ht;
-      const saveHashTag = await this.hashTagService.save(hashTag);
+      const hashTagExist = await this.hashTagService.findByName(ht);
       const hashTagBlog = new HashTagBlog();
-      hashTagBlog.blog = blog;
-      hashTagBlog.hashTag = saveHashTag;
-      await this.hashTagBlogService.save(hashTagBlog);
+      if (hashTagExist) {
+        hashTagBlog.blog = blog;
+        hashTagBlog.hashTag = hashTagExist;
+        await this.hashTagBlogService.save(hashTagBlog);
+      } else {
+        const hashTag = new HashTag();
+        hashTag.hashTagName = ht;
+        const saveHashTag = await this.hashTagService.save(hashTag);
+        hashTagBlog.blog = blog;
+        hashTagBlog.hashTag = saveHashTag;
+        await this.hashTagBlogService.save(hashTagBlog);
+      }
     });
   }
 
@@ -82,23 +121,93 @@ export class BlogService {
         blogMedias: {
           media: true,
         },
-      },
-    });
-  }
-
-  findOne(id: number) {
-    return this.blogRepository.findOne({
-      where: { id },
-      relations: {
-        blogMedias: {
-          media: true,
+        hashTagBlogs: {
+          hashTag: true,
         },
       },
     });
   }
 
-  update(id: number, updateBlogDto: UpdateBlogDto) {
-    return `This action updates a #${id} blog`;
+  async findOne(id: number) {
+    return await this.blogRepository.findOne({
+      where: { id },
+      relations: {
+        blogMedias: {
+          media: true,
+        },
+        hashTagBlogs: {
+          hashTag: true,
+        },
+      },
+    });
+  }
+
+  async findAllWithPag(options: IPaginationOptions) {
+    const queryBuilder = this.blogRepository
+      .createQueryBuilder('blog')
+      .leftJoinAndSelect('blog.blogMedias', 'blogMedias')
+      .leftJoinAndSelect('blogMedias.media', 'media')
+      .leftJoinAndSelect('blog.hashTagBlogs', 'hashTagBlogs')
+      .leftJoinAndSelect('hashTagBlogs.hashTag', 'hashTag')
+      .orderBy('blog.id', 'DESC');
+
+    const blogs = await paginate<Blog>(queryBuilder, options);
+    const blogsDto = new ResponseBlogDtoPag();
+    blogsDto.items = blogs.items.map((blog) => {
+      return plainToClass(ResponseBlogDto, blog);
+    });
+    blogsDto.meta = blogs.meta;
+    return blogsDto;
+  }
+
+  async update(
+    id: number,
+    updateBlogDto: UpdateBlogDto,
+    files: Express.Multer.File[],
+    userId: number,
+  ): Promise<boolean> {
+    const user = await this.userService.findOne(userId);
+    const blog = await this.blogRepository.findOneBy({ id });
+    if (user.id !== blog.user.id) {
+      throw new HttpException('Not the owner', HttpStatus.BAD_REQUEST);
+    }
+    if (updateBlogDto.title) {
+      blog.title = updateBlogDto.title;
+    }
+    if (updateBlogDto.content) {
+      blog.content = updateBlogDto.content;
+    }
+    const saveBlog = await this.blogRepository.save(blog);
+    if (updateBlogDto.deleteHashTagIds || updateBlogDto.hashTags) {
+      this.updateHashTag(updateBlogDto.deleteHashTagIds, updateBlogDto.hashTags, saveBlog);
+    }
+
+    if (updateBlogDto.deleteMediaIds || files.length !== 0) {
+      this.updateMedia(updateBlogDto.deleteMediaIds, files, saveBlog);
+    }
+    return true;
+  }
+
+  async updateHashTag(deleteHashTagIds: number[], hashTags: string[], blog: Blog) {
+    if (deleteHashTagIds) {
+      deleteHashTagIds.forEach((ht) => {
+        this.hashTagBlogService.deleteByBlogIdAndHashTagId(blog.id, ht);
+      });
+    }
+    if (hashTags) {
+      this.attachHashTag(hashTags, blog);
+    }
+  }
+
+  async updateMedia(deleteMediaIds: number[], files: Express.Multer.File[], blog: Blog) {
+    if (deleteMediaIds) {
+      deleteMediaIds.forEach((md) => {
+        this.blogMediaService.deleteByBlogIdAndMediaId(blog.id, md);
+      });
+    }
+    if (files.length !== 0) {
+      this.attachMedia(files, blog);
+    }
   }
 
   async remove(id: number, userId: number): Promise<boolean> {

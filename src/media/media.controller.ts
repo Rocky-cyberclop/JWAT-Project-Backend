@@ -8,7 +8,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { FileInterceptor } from 'src/interceptor/file.interceptor';
+import { FileInterceptor } from 'src/interceptor/media.interceptor';
 import { MediaService } from './media.service';
 
 @Controller('media')

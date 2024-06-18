@@ -4,6 +4,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Param,
   Patch,
   Post,
   Req,
@@ -12,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/decorator/roles.decorator';
-import { FileInterceptor } from 'src/interceptor/file.interceptor';
+import { FileInterceptor } from 'src/interceptor/media.interceptor';
 import { ChangePasswordUserDto } from './dto/change-password-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ResponseUserDto } from './dto/response-user.dto';
@@ -29,8 +30,13 @@ export class UserController {
     return this.userService.create(req.user.id, createUserDto);
   }
 
+  @Get('get-role')
+  getRole(@Req() req: any): Promise<Role> {
+    return this.userService.getRole(req.user.id);
+  }
+
   @Get('current')
-  findOne(@Req() req: any): Promise<ResponseUserDto> {
+  currentUser(@Req() req: any): Promise<ResponseUserDto> {
     return this.userService.findOne(req.user.id);
   }
 
@@ -55,8 +61,8 @@ export class UserController {
     return this.userService.changePassword(req.user.id, changePasswordUserDto);
   }
 
-  @Get('get-role')
-  getRole(@Req() req: any): Promise<Role> {
-    return this.userService.getRole(req.user.id);
+  @Get(':id')
+  findById(@Param('id') id: number): Promise<ResponseUserDto> {
+    return this.userService.findOne(+id);
   }
 }

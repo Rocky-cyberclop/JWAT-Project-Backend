@@ -4,10 +4,12 @@ import { BlogMediaModule } from 'src/blog-media/blog-media.module';
 import { HashTagBlogModule } from 'src/hash-tag-blog/hash-tag-blog.module';
 import { HashTagModule } from 'src/hash-tag/hash-tag.module';
 import { MediaModule } from 'src/media/media.module';
+import { SearchModule } from 'src/search/search.module';
 import { UserModule } from 'src/user/user.module';
 import { BlogController } from './blog.controller';
 import { BlogService } from './blog.service';
 import { Blog } from './entities/blog.entity';
+import { BlogSearchService } from './blog.search.service';
 
 @Module({
   imports: [
@@ -17,8 +19,9 @@ import { Blog } from './entities/blog.entity';
     BlogMediaModule,
     HashTagModule,
     HashTagBlogModule,
+    SearchModule,
   ],
   controllers: [BlogController],
-  providers: [BlogService],
+  providers: [BlogService, BlogSearchService],
 })
 export class BlogModule {}
