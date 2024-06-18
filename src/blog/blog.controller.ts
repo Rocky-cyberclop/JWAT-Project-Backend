@@ -46,7 +46,7 @@ export class BlogController {
   search(
     @Query('text') searchString: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('limit', new DefaultValuePipe(8), ParseIntPipe) limit: number = 8,
   ): Promise<ResponseBlogDtoPag> {
     return this.blogService.searchForBlogs(searchString, { limit, page });
   }
@@ -54,8 +54,8 @@ export class BlogController {
   @Get('all')
   getAllWithPag(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
-  ) {
+    @Query('limit', new DefaultValuePipe(8), ParseIntPipe) limit: number = 8,
+  ): Promise<ResponseBlogDtoPag> {
     return this.blogService.findAllWithPag({ limit, page });
   }
 

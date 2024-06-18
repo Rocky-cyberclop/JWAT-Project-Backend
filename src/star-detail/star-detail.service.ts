@@ -1,26 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { CreateStarDetailDto } from './dto/create-star-detail.dto';
-import { UpdateStarDetailDto } from './dto/update-star-detail.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { plainToClass } from 'class-transformer';
+import { BlogService } from 'src/blog/blog.service';
+import { Blog } from 'src/blog/entities/blog.entity';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
+import { StarDetail } from './entities/star-detail.entity';
 
 @Injectable()
 export class StarDetailService {
-  create(createStarDetailDto: CreateStarDetailDto) {
-    return 'This action adds a new starDetail';
-  }
+  constructor(
+    @InjectRepository(StarDetail)
+    private readonly starDetailRepository: Repository<StarDetail>,
+    private readonly userService: UserService,
+    private readonly blogService: BlogService,
+  ) {}
 
-  findAll() {
-    return `This action returns all starDetail`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} starDetail`;
-  }
-
-  update(id: number, updateStarDetailDto: UpdateStarDetailDto) {
-    return `This action updates a #${id} starDetail`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} starDetail`;
+  async createOrRemove(userId: number, blogId: number) {
+    const blog = await this.blogService.findOne(blogId);
+    const user = await this.userService.findOne(userId);
+    const star = await this.starDetailRepository.findOne({
+      where: { blog: {id: blogId}, user: {id: userId} },
+    });
+    if (!star) {
+      const starDetail = new StarDetail();
+      starDetail.blog = plainToClass(Blog, blog);
+      starDetail.user = plainToClass(User, user);
+      await this.starDetailRepository.save(starDetail);
+    } else {
+      await this.starDetailRepository.delete(star);
+    }
   }
 }

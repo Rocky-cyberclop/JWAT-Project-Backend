@@ -1,26 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { plainToClass } from 'class-transformer';
+import { BlogService } from 'src/blog/blog.service';
+import { Blog } from 'src/blog/entities/blog.entity';
+import { User } from 'src/user/entities/user.entity';
+import { Role } from 'src/user/enums/roles.enum';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
+import { Comment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentService {
-  create(createCommentDto: CreateCommentDto) {
-    return 'This action adds a new comment';
+  constructor(
+    @InjectRepository(Comment)
+    private readonly commentRepository: Repository<Comment>,
+    private readonly userService: UserService,
+    private readonly blogService: BlogService,
+  ) {}
+
+  async create(userId: number, createCommentDto: CreateCommentDto) {
+    const user = await this.userService.findOne(userId);
+    const blog = await this.blogService.findOne(createCommentDto.blogId);
+    const comment = new Comment();
+    comment.user = plainToClass(User, user);
+    comment.blog = plainToClass(Blog, blog);
+    comment.content = createCommentDto.content;
+    await this.commentRepository.save(comment);
+    return true;
   }
 
-  findAll() {
-    return `This action returns all comment`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} comment`;
-  }
-
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return `This action updates a #${id} comment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} comment`;
+  async remove(id: number, userId: number): Promise<boolean> {
+    const user = await this.userService.findOne(userId);
+    const comment = await this.commentRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+    if (user.role === Role.EMPLOYEE && user.id !== comment.user.id) {
+      throw new HttpException('Not the owner', HttpStatus.BAD_REQUEST);
+    }
+    await this.commentRepository.softDelete(id);
+    return true;
   }
 }

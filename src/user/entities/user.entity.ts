@@ -19,6 +19,7 @@ import {
 } from 'typeorm';
 import { Gender } from '../enums/gender.enum';
 import { Role } from '../enums/roles.enum';
+import { Exclude } from 'class-transformer';
 
 @Entity({ name: 'user' })
 export class User {
@@ -48,9 +49,11 @@ export class User {
   address: string;
 
   @Column({ length: 50, unique: true })
+  @Exclude()
   username: string;
 
   @Column({ length: 255 })
+  @Exclude()
   password: string;
 
   @Column({
@@ -58,21 +61,27 @@ export class User {
     enum: Role,
     default: Role.EMPLOYEE,
   })
+  @Exclude()
   role: Role;
 
   @Column({ nullable: true })
+  @Exclude()
   userCreateId: number;
 
   @CreateDateColumn()
+  @Exclude()
   createdAt: Date;
 
   @UpdateDateColumn()
+  @Exclude()
   updatedAt: Date;
 
   @DeleteDateColumn()
+  @Exclude()
   deleteAt: Date;
 
   @Column({ length: 255, nullable: true })
+  @Exclude()
   refreshToken: string;
 
   @OneToMany(() => Blog, (blog) => blog.user)

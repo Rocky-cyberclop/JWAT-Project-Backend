@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Blog } from 'src/blog/entities/blog.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
@@ -19,12 +20,15 @@ export class Comment {
   content: string;
 
   @CreateDateColumn()
+  @Exclude()
   createdAt: Date;
 
   @UpdateDateColumn()
+  @Exclude()
   updatedAt: Date;
 
   @DeleteDateColumn()
+  @Exclude()
   deletedAt: Date;
 
   @ManyToOne(() => User, (user) => user.comments)

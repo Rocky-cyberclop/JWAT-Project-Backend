@@ -23,5 +23,6 @@ import { BlogSearchService } from './blog.search.service';
   ],
   controllers: [BlogController],
   providers: [BlogService, BlogSearchService],
+  exports: [BlogService]
 })
 export class BlogModule {}
