@@ -80,7 +80,6 @@ services:
     #   timeout: 2s
     #   retries: 2
 
-
 # postgres:
   #   image: postgres
   #   restart: always
@@ -101,7 +100,7 @@ services:
   #     timeout: 2s
   #     retries: 2
 volumes:
-  # postgres-data:
   redis-data:
   esdata:
     driver: local
+  # postgres-data:
