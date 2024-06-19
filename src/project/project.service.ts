@@ -426,9 +426,8 @@ export class ProjectService {
 
   async getDocumentInGroup(projectId: number): Promise<any> {
     const documentRelated = await this.documentRepository.findOne({
-      relations: ['documentGroup.children', 'documentGroup.documents', 'project'],
+      relations: ['documentGroup', 'project'],
       where: { project: { id: projectId } },
-      order: { documentGroup: { id: 'ASC' } },
     });
     if (!documentRelated) {
       const emptyGroup = new DocumentGroup();
@@ -439,12 +438,28 @@ export class ProjectService {
       return emptyGroup;
     }
     const documentGroup = documentRelated.documentGroup;
-    documentGroup.children = await Promise.all(
-      documentGroup.children.map(async (documentGroup) => {
+    const root = await this.findRootDocumentGroup(documentGroup.id);
+    root.children = await Promise.all(
+      root.children.map(async (documentGroup) => {
         return await this.getGroupHierachy(documentGroup);
       }),
     );
-    return documentGroup;
+    return root;
+  }
+
+  async findRootDocumentGroup(groupId: number): Promise<DocumentGroup> {
+    let group = await this.documentGroupRepository.findOne({
+      relations: ['parent'],
+      where: { id: groupId },
+    });
+    if (!group.parent) {
+      group = await this.documentGroupRepository.findOne({
+        relations: ['parent', 'children', 'documents'],
+        where: { id: groupId },
+      });
+      return group;
+    }
+    return this.findRootDocumentGroup(group.parent.id);
   }
 
   /**
