@@ -99,7 +99,7 @@ export class ProjectController {
   }
 
   @Get('document/group/:id')
-  @Roles(Role.MANAGER)
+  @Roles(Role.MANAGER, Role.EMPLOYEE)
   getGroupingDocument(@Param('id') id: number): Promise<any> {
     return this.projectService.getDocumentInGroup(id);
   }
