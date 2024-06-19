@@ -48,25 +48,25 @@ services:
     ports:
       - 3001:3001
     environment:
-      PORT: 3001
-      DB_NAME: jwat_knowledge_sharing
-      DB_PORT: 5432
-      DB_USERNAME: jwat_knowledge_sharing_user
-      DB_PASSWORD: 9tZeMmJJegEYI54z7oPgfGfWerHkWDIf
-      DB_HOST: dpg-cpaom6u3e1ms739suvag-a.singapore-postgres.render.com
-      ACCESS_TOKEN_KEY: accesstokenkeyjwat2402
-      REFRESH_TOKEN_KEY: refreshtokenkeyjwat2402
-      CLOUDINARY_NAME: dzfwvoijo
-      CLOUDINARY_API_KEY: 749281176233987
-      CLOUDINARY_API_SECRET: BzQjqSewHKCgvfLjeosAX8x8Z0o
-      MAIL_HOST: smtp.gmail.com
-      MAIL_PORT: 587
-      MAIL_USER: phuochoang.tran.clv@gmail.com
-      MAIL_PASSWORD: hbxtaxafscymmscp
-      DEFAULT_MAIL_FROM: phuochoang.tran.clv@gmail.com
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      ELASTICSEARCH_NODE: http://elasticsearch:9200
+      PORT: ${PORT}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      ACCESS_TOKEN_KEY: ${ACCESS_TOKEN_KEY}
+      REFRESH_TOKEN_KEY: ${REFRESH_TOKEN_KEY}
+      CLOUDINARY_NAME: ${CLOUDINARY_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      DEFAULT_MAIL_FROM: ${DEFAULT_MAIL_FROM}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      ELASTICSEARCH_NODE: ${ELASTICSEARCH_NODE}
     depends_on:
       redis:
         condition: service_healthy
