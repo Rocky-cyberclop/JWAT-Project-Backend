@@ -80,6 +80,7 @@ export class ProjectService {
     const userDoesProjects = await this.userProjectRepository.find({
       relations: ['project.media', 'user'],
       where: { user: { id: userId } },
+      order: { project: { id: 'ASC' } },
     });
     const projects = new Array<ResponseProjectDto>();
     const projectPromise = userDoesProjects.map(async (userDoesProject: UserProject) => {
@@ -424,13 +425,20 @@ export class ProjectService {
   }
 
   async getDocumentInGroup(projectId: number): Promise<any> {
-    const documentGroup = (
-      await this.documentRepository.findOne({
-        relations: ['documentGroup.children', 'documentGroup.documents', 'project'],
-        where: { project: { id: projectId } },
-        order: { documentGroup: { id: 'ASC' } },
-      })
-    ).documentGroup;
+    const documentRelated = await this.documentRepository.findOne({
+      relations: ['documentGroup.children', 'documentGroup.documents', 'project'],
+      where: { project: { id: projectId } },
+      order: { documentGroup: { id: 'ASC' } },
+    });
+    if (!documentRelated) {
+      const emptyGroup = new DocumentGroup();
+      emptyGroup.children = [];
+      emptyGroup.documents = [];
+      emptyGroup.name = 'Root';
+      emptyGroup.parent = null;
+      return emptyGroup;
+    }
+    const documentGroup = documentRelated.documentGroup;
     documentGroup.children = await Promise.all(
       documentGroup.children.map(async (documentGroup) => {
         return await this.getGroupHierachy(documentGroup);
