@@ -178,12 +178,12 @@ If the database/migrations had enough file:
 
 # How to backup the database
 
-### First now need to access to the cloud database using dbeaver
+- First now need to access to the cloud database using dbeaver
 
-### Then open the server -> open the database -> right click on it -> tools -> backup
+- Then open the server -> open the database -> right click on it -> tools -> backup
 
-### When the dialog appears -> click all to backup all tables -> next -> encoding: UTF-8 -> change the stored file backup if needed
+- When the dialog appears -> click all to backup all tables -> next -> encoding: UTF-8 -> change the stored file backup if needed
 
-### In that window, click to the local client (button) -> point to the directory that store psql version 16 cause the cloud run on psql 16
+- In that window, click to the local client (button) -> point to the directory that store psql version 16 cause the cloud run on psql 16
 
-### Finally start backup
+- Finally start backup
