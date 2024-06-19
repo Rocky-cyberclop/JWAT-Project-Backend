@@ -2,26 +2,6 @@ version: '1.0'
 
 services:
 
-  postgres:
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: 992002
-      POSTGRES_DB: jwat_knowledge_sharing
-    ports:
-      - 5432:5432
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U postgres -d jwat_knowledge_sharing"
-        ]
-      interval: 2s
-      timeout: 2s
-      retries: 2
-
   redis:
     image: redis
     ports:
@@ -59,9 +39,9 @@ services:
           "-f",
           "http://localhost:9200/_cluster/health"
         ]
-      interval: 15s
-      timeout: 2s
-      retries: 2
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   backend:
     image: rockyoperation/knowledge-sharing-backend
@@ -71,9 +51,9 @@ services:
       PORT: 3001
       DB_NAME: jwat_knowledge_sharing
       DB_PORT: 5432
-      DB_USERNAME: postgres
-      DB_PASSWORD: 992002
-      DB_HOST: postgres
+      DB_USERNAME: jwat_knowledge_sharing_user
+      DB_PASSWORD: 9tZeMmJJegEYI54z7oPgfGfWerHkWDIf
+      DB_HOST: dpg-cpaom6u3e1ms739suvag-a.singapore-postgres.render.com
       ACCESS_TOKEN_KEY: accesstokenkeyjwat2402
       REFRESH_TOKEN_KEY: refreshtokenkeyjwat2402
       CLOUDINARY_NAME: dzfwvoijo
@@ -88,26 +68,40 @@ services:
       REDIS_PORT: 6379
       ELASTICSEARCH_NODE: http://elasticsearch:9200
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
+      # postgres:
+      #   condition: service_healthy
     # healthcheck:
     #   test: [ "CMD", "curl", "-f", "http://localhost:3001/api/health" ]
     #   interval: 2s
     #   timeout: 2s
     #   retries: 2
 
+
+# postgres:
+  #   image: postgres
+  #   restart: always
+  #   environment:
+  #     POSTGRES_PASSWORD: 992002
+  #     POSTGRES_DB: jwat_knowledge_sharing
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD-SHELL",
+  #         "pg_isready -U postgres -d jwat_knowledge_sharing"
+  #       ]
+  #     interval: 2s
+  #     timeout: 2s
+  #     retries: 2
 volumes:
-  postgres-data:
+  # postgres-data:
   redis-data:
   esdata:
     driver: local
-
-## No need to use this container
-#   kibana:
-#     image: docker.elastic.co/kibana/kibana:8.14.1
-#     ports:
-#       - "5601:5601"
