@@ -376,13 +376,11 @@ export class ProjectService {
   async ungroupDocument(
     ungroupDocumentRequest: UnGroupDocumentRequest,
   ): Promise<UnGroupDocumentRequest> {
-    const documentGroup = (
-      await this.documentRepository.findOne({
-        relations: ['documentGroup.documents', 'project'],
-        where: { project: { id: ungroupDocumentRequest.project } },
-        order: { documentGroup: { id: 'ASC' } },
-      })
-    ).documentGroup;
+    const randomDocInProject = await this.documentRepository.findOne({
+      relations: ['project', 'documentGroup'],
+      where: { project: { id: ungroupDocumentRequest.project } },
+    });
+    const documentGroup = await this.findRootDocumentGroup(randomDocInProject.documentGroup.id);
     const documents = await this.documentRepository.find({
       where: { id: In(ungroupDocumentRequest.documents) },
     });
@@ -447,6 +445,11 @@ export class ProjectService {
     return root;
   }
 
+  /**
+   * This function is a recursion function and it will find the document group root from any of document group node
+   * @param groupId Id of a Document Group
+   * @returns a Root Document Group
+   */
   async findRootDocumentGroup(groupId: number): Promise<DocumentGroup> {
     let group = await this.documentGroupRepository.findOne({
       relations: ['parent'],
