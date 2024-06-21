@@ -5,6 +5,7 @@ import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { BlogMediaService } from 'src/blog-media/blog-media.service';
 import { BlogMedia } from 'src/blog-media/entities/blog-media.entity';
 import { CommentService } from 'src/comment/comment.service';
+import { Comment } from 'src/comment/entities/comment.entity';
 import { HashTagBlog } from 'src/hash-tag-blog/entities/hash-tag-blog.entity';
 import { HashTagBlogService } from 'src/hash-tag-blog/hash-tag-blog.service';
 import { HashTag } from 'src/hash-tag/entities/hash-tag.entity';
@@ -21,7 +22,6 @@ import { ResponseBlogDtoPag } from './dto/response-blog-pag.dto';
 import { ResponseBlogDto } from './dto/response-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { Blog } from './entities/blog.entity';
-import { Comment } from 'src/comment/entities/comment.entity';
 
 @Injectable()
 export class BlogService {
@@ -49,7 +49,7 @@ export class BlogService {
     blog.title = createBlogDto.title;
     blog.content = createBlogDto.content;
     const saveBlog = await this.blogRepository.save(blog);
-    // this.blogSearchService.indexBlog(blog);
+    this.blogSearchService.indexBlog(blog);
     if (createBlogDto.hashTags && createBlogDto.hashTags?.length !== 0) {
       this.attachHashTag(createBlogDto.hashTags, saveBlog);
     }
@@ -221,6 +221,7 @@ export class BlogService {
       throw new HttpException('Not the owner', HttpStatus.BAD_REQUEST);
     }
     await this.blogRepository.softDelete(id);
+    await this.blogSearchService.remove(blog);
     return true;
   }
 
