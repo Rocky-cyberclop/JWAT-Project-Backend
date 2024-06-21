@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { log } from 'console';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from 'src/decorator/public.decorator';
 
@@ -37,14 +38,24 @@ export class AuthGuard implements CanActivate {
         secret: this.configService.get<string>('accessTokenKey'),
       });
       request['user'] = payload;
-    } catch {
-      throw new HttpException(
-        {
-          status: 419,
-          message: 'Token expired',
-        },
-        419,
-      );
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new HttpException(
+          {
+            status: 419,
+            message: 'Token expired',
+          },
+          419,
+        );
+      } else {
+        throw new HttpException(
+          {
+            status: 401,
+            message: 'Token Invalid',
+          },
+          401,
+        );
+      }
     }
     return true;
   }
