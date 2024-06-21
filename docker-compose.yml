@@ -80,27 +80,7 @@ services:
     #   timeout: 2s
     #   retries: 2
 
-# postgres:
-  #   image: postgres
-  #   restart: always
-  #   environment:
-  #     POSTGRES_PASSWORD: 992002
-  #     POSTGRES_DB: jwat_knowledge_sharing
-  #   ports:
-  #     - 5432:5432
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test:
-  #       [
-  #         "CMD-SHELL",
-  #         "pg_isready -U postgres -d jwat_knowledge_sharing"
-  #       ]
-  #     interval: 2s
-  #     timeout: 2s
-  #     retries: 2
 volumes:
   redis-data:
   esdata:
     driver: local
-  # postgres-data:

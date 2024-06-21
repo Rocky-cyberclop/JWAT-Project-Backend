@@ -320,9 +320,8 @@ export class ProjectService {
     const savedDocuments = await this.documentRepository.save(documents);
     let documentGroup = (
       await this.documentRepository.findOne({
-        relations: ['documentGroup.documents', 'project'],
+        relations: ['documentGroup', 'project'],
         where: { project: { id: projectId } },
-        order: { documentGroup: { id: 'ASC' } },
       })
     ).documentGroup;
     if (!documentGroup) {
@@ -330,10 +329,13 @@ export class ProjectService {
       documentGroup.name = 'Root';
       documentGroup.documents = new Array<Document>();
       documentGroup.documents = savedDocuments;
+      await this.documentGroupRepository.save(documentGroup);
     } else {
-      documentGroup.documents = [...documentGroup.documents, ...documents];
+      const root = await this.findRootDocumentGroup(documentGroup.id);
+      if (root.documents.length > 0) root.documents = [...documentGroup.documents, ...documents];
+      else root.documents = documents;
+      await this.documentGroupRepository.save(root);
     }
-    await this.documentGroupRepository.save(documentGroup);
     return savedDocuments;
   }
 
