@@ -60,4 +60,17 @@ export class BlogSearchService {
       },
     });
   }
+
+  async remove(blog: Blog) {
+    this.elasticsearchService.deleteByQuery({
+      index: this.index,
+      body: {
+        query: {
+          match: {
+            id: blog.id,
+          },
+        },
+      },
+    });
+  }
 }
