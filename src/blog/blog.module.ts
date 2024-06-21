@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BlogMediaModule } from 'src/blog-media/blog-media.module';
 import { HashTagBlogModule } from 'src/hash-tag-blog/hash-tag-blog.module';
@@ -10,6 +10,7 @@ import { BlogController } from './blog.controller';
 import { BlogService } from './blog.service';
 import { Blog } from './entities/blog.entity';
 import { BlogSearchService } from './blog.search.service';
+import { CommentModule } from 'src/comment/comment.module';
 
 @Module({
   imports: [
@@ -20,9 +21,10 @@ import { BlogSearchService } from './blog.search.service';
     HashTagModule,
     HashTagBlogModule,
     SearchModule,
+    forwardRef(()=>CommentModule)
   ],
   controllers: [BlogController],
   providers: [BlogService, BlogSearchService],
-  exports: [BlogService]
+  exports: [BlogService],
 })
 export class BlogModule {}

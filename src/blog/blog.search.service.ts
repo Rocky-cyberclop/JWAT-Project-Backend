@@ -34,4 +34,30 @@ export class BlogSearchService {
     const hits = result.hits.hits;
     return hits.map((item) => item._source);
   }
+
+  async update(blog: Blog) {
+    const newBody: BlogSearchBody = {
+      id: blog.id,
+      title: blog.title,
+      content: blog.content,
+    };
+    const script = Object.entries(newBody).reduce((result, [key, value]) => {
+      const escapedValue = typeof value === 'string' ? value.replace(/'/g, "\\'") : value;
+      return `${result} ctx._source.${key}='${escapedValue}';`;
+    }, '');
+    return this.elasticsearchService.updateByQuery({
+      index: this.index,
+      body: {
+        query: {
+          match: {
+            id: blog.id,
+          },
+        },
+        script: {
+          source: script,
+          lang: 'painless',
+        },
+      },
+    });
+  }
 }
