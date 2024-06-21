@@ -1,9 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { BlogMediaService } from 'src/blog-media/blog-media.service';
 import { BlogMedia } from 'src/blog-media/entities/blog-media.entity';
+import { CommentService } from 'src/comment/comment.service';
 import { HashTagBlog } from 'src/hash-tag-blog/entities/hash-tag-blog.entity';
 import { HashTagBlogService } from 'src/hash-tag-blog/hash-tag-blog.service';
 import { HashTag } from 'src/hash-tag/entities/hash-tag.entity';
@@ -20,10 +21,10 @@ import { ResponseBlogDtoPag } from './dto/response-blog-pag.dto';
 import { ResponseBlogDto } from './dto/response-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { Blog } from './entities/blog.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
 
 @Injectable()
 export class BlogService {
-  private index = 'blogs';
   constructor(
     @InjectRepository(Blog)
     private readonly blogRepository: Repository<Blog>,
@@ -33,6 +34,8 @@ export class BlogService {
     private readonly hashTagService: HashTagService,
     private readonly hashTagBlogService: HashTagBlogService,
     private readonly blogSearchService: BlogSearchService,
+    @Inject(forwardRef(() => CommentService))
+    private readonly commentService: CommentService,
   ) {}
 
   async create(
@@ -46,11 +49,11 @@ export class BlogService {
     blog.title = createBlogDto.title;
     blog.content = createBlogDto.content;
     const saveBlog = await this.blogRepository.save(blog);
-    this.blogSearchService.indexBlog(blog);
-    if (createBlogDto.hashTags.length !== 0) {
+    // this.blogSearchService.indexBlog(blog);
+    if (createBlogDto.hashTags && createBlogDto.hashTags?.length !== 0) {
       this.attachHashTag(createBlogDto.hashTags, saveBlog);
     }
-    if (files.length !== 0) {
+    if (files.length) {
       this.attachMedia(files, saveBlog);
     }
     return true;
@@ -66,16 +69,9 @@ export class BlogService {
       const queryBuilder = this.blogRepository
         .createQueryBuilder('blog')
         .where('blog.id IN (:...ids)', { ids })
-        .leftJoinAndSelect('blog.starDetails', 'starDetails')
-        .leftJoin('starDetails.user', 'userStar')
-        .addSelect('userStar.id')
-        .leftJoinAndSelect('blog.comments', 'comments')
-        .leftJoinAndSelect('comments.user', 'user')
-        .leftJoinAndSelect('user.media', 'userMedia')
-        .leftJoinAndSelect('blog.blogMedias', 'blogMedias')
-        .leftJoinAndSelect('blogMedias.media', 'media')
-        .leftJoinAndSelect('blog.hashTagBlogs', 'hashTagBlogs')
-        .leftJoinAndSelect('hashTagBlogs.hashTag', 'hashTag');
+        .leftJoin('blog.user', 'user')
+        .addSelect('user.id')
+        .orderBy('blog.id', 'DESC');
       const blogs = await paginate<Blog>(queryBuilder, options);
       const blogsDto = new ResponseBlogDtoPag();
       blogsDto.items = blogs.items.map((blog) => {
@@ -151,16 +147,8 @@ export class BlogService {
   async findAllWithPag(options: IPaginationOptions): Promise<ResponseBlogDtoPag> {
     const queryBuilder = this.blogRepository
       .createQueryBuilder('blog')
-      .leftJoinAndSelect('blog.starDetails', 'starDetails')
-      .leftJoin('starDetails.user', 'userStar')
-      .addSelect('userStar.id')
-      .leftJoinAndSelect('blog.comments', 'comments')
-      .leftJoinAndSelect('comments.user', 'user')
-      .leftJoinAndSelect('user.media', 'userMedia')
-      .leftJoinAndSelect('blog.blogMedias', 'blogMedias')
-      .leftJoinAndSelect('blogMedias.media', 'media')
-      .leftJoinAndSelect('blog.hashTagBlogs', 'hashTagBlogs')
-      .leftJoinAndSelect('hashTagBlogs.hashTag', 'hashTag')
+      .leftJoin('blog.user', 'user')
+      .addSelect('user.id')
       .orderBy('blog.id', 'DESC');
     const blogs = await paginate<Blog>(queryBuilder, options);
     const blogsDto = new ResponseBlogDtoPag();
@@ -178,7 +166,7 @@ export class BlogService {
     userId: number,
   ): Promise<boolean> {
     const user = await this.userService.findOne(userId);
-    const blog = await this.blogRepository.findOneBy({ id });
+    const blog = await this.blogRepository.findOne({ where: { id }, relations: { user: true } });
     if (user.id !== blog.user.id) {
       throw new HttpException('Not the owner', HttpStatus.BAD_REQUEST);
     }
@@ -189,6 +177,7 @@ export class BlogService {
       blog.content = updateBlogDto.content;
     }
     const saveBlog = await this.blogRepository.save(blog);
+    this.blogSearchService.update(saveBlog);
     if (updateBlogDto.deleteHashTagIds || updateBlogDto.hashTags) {
       this.updateHashTag(updateBlogDto.deleteHashTagIds, updateBlogDto.hashTags, saveBlog);
     }
@@ -233,5 +222,17 @@ export class BlogService {
     }
     await this.blogRepository.softDelete(id);
     return true;
+  }
+
+  async getMediasByBlogId(blogId: number): Promise<Media[]> {
+    return this.mediaService.getMediaByBlogId(blogId);
+  }
+
+  async getCommentsByBlogId(blogId: number): Promise<Comment[]> {
+    return this.commentService.getCommentByBlogId(blogId);
+  }
+
+  async getHashTagByBlogId(blogId: number): Promise<HashTag[]> {
+    return this.hashTagService.getHashTagByBlogId(blogId);
   }
 }

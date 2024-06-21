@@ -18,11 +18,14 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/decorator/roles.decorator';
 import { FileInterceptor } from 'src/interceptor/media.interceptor';
+import { Media } from 'src/media/entities/media.entity';
 import { Role } from 'src/user/enums/roles.enum';
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { ResponseBlogDtoPag } from './dto/response-blog-pag.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
+import { Comment } from 'src/comment/entities/comment.entity';
+import { HashTag } from 'src/hash-tag/entities/hash-tag.entity';
 
 @Controller('blog')
 export class BlogController {
@@ -49,6 +52,21 @@ export class BlogController {
     @Query('limit', new DefaultValuePipe(8), ParseIntPipe) limit: number = 8,
   ): Promise<ResponseBlogDtoPag> {
     return this.blogService.searchForBlogs(searchString, { limit, page });
+  }
+
+  @Get('get-medias/:blogId')
+  getMediaOfBlog(@Param('blogId') blogId: number): Promise<Media[]> {
+    return this.blogService.getMediasByBlogId(blogId);
+  }
+
+  @Get('get-comments/:blogId')
+  getCommentOfBlog(@Param('blogId') blogId: number): Promise<Comment[]>{
+    return this.blogService.getCommentsByBlogId(blogId);
+  }
+
+  @Get('get-hashtags/:blogId')
+  getHashTagOfBlog(@Param('blogId') blogId: number): Promise<HashTag[]>{
+    return this.blogService.getHashTagByBlogId(blogId);
   }
 
   @Get('all')
