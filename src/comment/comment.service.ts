@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { BlogService } from 'src/blog/blog.service';
@@ -16,6 +16,7 @@ export class CommentService {
     @InjectRepository(Comment)
     private readonly commentRepository: Repository<Comment>,
     private readonly userService: UserService,
+    @Inject(forwardRef(() => BlogService))
     private readonly blogService: BlogService,
   ) {}
 
@@ -41,5 +42,15 @@ export class CommentService {
     }
     await this.commentRepository.softDelete(id);
     return true;
+  }
+
+  async getCommentByBlogId(blogId: number) {
+    const comments = await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoin('comment.user', 'user')
+      .select(['comment.id','comment.content', 'user.id'])
+      .where('comment.blogId = :blogId', { blogId })
+      .getMany();
+    return comments;
   }
 }

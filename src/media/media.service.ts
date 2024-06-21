@@ -67,4 +67,14 @@ export class MediaService {
   async deleteById(id: number): Promise<DeleteResult> {
     return await this.mediaRepository.delete(id);
   }
+
+  async getMediaByBlogId(blogId: number): Promise<Media[]> {
+    return this.mediaRepository.find({
+      where: {
+        blogMedias: {
+          blog: { id: blogId },
+        },
+      },
+    });
+  }
 }
