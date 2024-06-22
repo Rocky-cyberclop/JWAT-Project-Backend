@@ -332,8 +332,7 @@ export class ProjectService {
       await this.documentGroupRepository.save(documentGroup);
     } else {
       const root = await this.findRootDocumentGroup(documentGroup.id);
-      if (root.documents.length > 0) root.documents = [...documentGroup.documents, ...documents];
-      else root.documents = documents;
+      root.documents = [...root.documents, ...documents];
       await this.documentGroupRepository.save(root);
     }
     return savedDocuments;
