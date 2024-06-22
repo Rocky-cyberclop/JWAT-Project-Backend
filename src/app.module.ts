@@ -3,8 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmAsyncConfig } from 'database/type.orm.async.config';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthGuard } from './auth/auth.guard';
@@ -44,7 +43,25 @@ require('dotenv').config();
         },
       }),
     }),
-    TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => {
+        return {
+          type: 'postgres',
+          host: configService.get<string>('dbHost'),
+          port: configService.get<number>('dbPort'),
+          username: configService.get<string>('dbUsername'),
+          database: configService.get<string>('dbName'),
+          password: configService.get<string>('dbPassword'),
+          entities: ['dist/**/*.entity.js'],
+          migrations: ['dist/database/migrations/*.js'],
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        };
+      },
+    }),
     UserModule,
     AuthModule,
     JwtModule,
