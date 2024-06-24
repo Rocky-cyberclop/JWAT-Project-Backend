@@ -393,7 +393,7 @@ export class ProjectService {
   async removeGroupDocument(id: number): Promise<DeleteResult> {
     let result;
     try {
-      result = await this.documentGroupRepository.delete(id);
+      result = await this.documentGroupRepository.softDelete(id);
     } catch (ex) {
       if (ex.code === '23503')
         throw new HttpException(
