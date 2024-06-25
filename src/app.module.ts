@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthGuard } from './auth/auth.guard';
@@ -20,10 +22,10 @@ import { KnowledgeModule } from './knowledge/knowledge.module';
 import { MailModule } from './mail/mail.module';
 import { MediaModule } from './media/media.module';
 import { ProjectModule } from './project/project.module';
+import { SearchModule } from './search/search.module';
 import { StarDetailModule } from './star-detail/star-detail.module';
 import { UserProjectModule } from './user-project/user-project.module';
 import { UserModule } from './user/user.module';
-import { SearchModule } from './search/search.module';
 require('dotenv').config();
 
 @Module({
@@ -61,6 +63,27 @@ require('dotenv').config();
           },
         };
       },
+    }),
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.ms(),
+            nestWinstonModuleUtilities.format.nestLike('AppConsoleLog'),
+          ),
+        }),
+        new winston.transports.File({
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.ms(),
+            nestWinstonModuleUtilities.format.nestLike('AppFileLog', {
+              prettyPrint: false,
+            }),
+          ),
+          filename: 'system.log',
+        }),
+      ],
     }),
     UserModule,
     AuthModule,
