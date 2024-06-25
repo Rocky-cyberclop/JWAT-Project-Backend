@@ -12,6 +12,8 @@ import { HashTag } from 'src/hash-tag/entities/hash-tag.entity';
 import { HashTagService } from 'src/hash-tag/hash-tag.service';
 import { Media } from 'src/media/entities/media.entity';
 import { MediaService } from 'src/media/media.service';
+import { StarDetail } from 'src/star-detail/entities/star-detail.entity';
+import { StarDetailService } from 'src/star-detail/star-detail.service';
 import { User } from 'src/user/entities/user.entity';
 import { Role } from 'src/user/enums/roles.enum';
 import { UserService } from 'src/user/user.service';
@@ -34,6 +36,8 @@ export class BlogService {
     private readonly hashTagService: HashTagService,
     private readonly hashTagBlogService: HashTagBlogService,
     private readonly blogSearchService: BlogSearchService,
+    @Inject(forwardRef(() => StarDetailService))
+    private readonly starDetailService: StarDetailService,
     @Inject(forwardRef(() => CommentService))
     private readonly commentService: CommentService,
   ) {}
@@ -235,5 +239,9 @@ export class BlogService {
 
   async getHashTagByBlogId(blogId: number): Promise<HashTag[]> {
     return this.hashTagService.getHashTagByBlogId(blogId);
+  }
+
+  async getStarByBlogId(blogId: number): Promise<StarDetail[]> {
+    return this.starDetailService.getStarOfBlog(blogId);
   }
 }

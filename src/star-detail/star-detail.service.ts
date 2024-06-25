@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { BlogService } from 'src/blog/blog.service';
@@ -14,6 +14,7 @@ export class StarDetailService {
     @InjectRepository(StarDetail)
     private readonly starDetailRepository: Repository<StarDetail>,
     private readonly userService: UserService,
+    @Inject(forwardRef(() => BlogService))
     private readonly blogService: BlogService,
   ) {}
 
@@ -21,7 +22,7 @@ export class StarDetailService {
     const blog = await this.blogService.findOne(blogId);
     const user = await this.userService.findOne(userId);
     const star = await this.starDetailRepository.findOne({
-      where: { blog: {id: blogId}, user: {id: userId} },
+      where: { blog: { id: blogId }, user: { id: userId } },
     });
     if (!star) {
       const starDetail = new StarDetail();
@@ -31,5 +32,15 @@ export class StarDetailService {
     } else {
       await this.starDetailRepository.delete(star);
     }
+  }
+
+  async getStarOfBlog(blogId: number) {
+    const stars = this.starDetailRepository
+      .createQueryBuilder('star_detail')
+      .leftJoin('star_detail.user', 'user')
+      .select(['star_detail.id', 'user.id'])
+      .where('star_detail.blogId = :blogId', { blogId })
+      .getMany();
+    return stars;
   }
 }

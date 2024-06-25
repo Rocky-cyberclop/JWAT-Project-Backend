@@ -1,16 +1,17 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BlogMediaModule } from 'src/blog-media/blog-media.module';
+import { CommentModule } from 'src/comment/comment.module';
 import { HashTagBlogModule } from 'src/hash-tag-blog/hash-tag-blog.module';
 import { HashTagModule } from 'src/hash-tag/hash-tag.module';
 import { MediaModule } from 'src/media/media.module';
 import { SearchModule } from 'src/search/search.module';
+import { StarDetailModule } from 'src/star-detail/star-detail.module';
 import { UserModule } from 'src/user/user.module';
 import { BlogController } from './blog.controller';
+import { BlogSearchService } from './blog.search.service';
 import { BlogService } from './blog.service';
 import { Blog } from './entities/blog.entity';
-import { BlogSearchService } from './blog.search.service';
-import { CommentModule } from 'src/comment/comment.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { CommentModule } from 'src/comment/comment.module';
     HashTagModule,
     HashTagBlogModule,
     SearchModule,
-    forwardRef(()=>CommentModule)
+    forwardRef(() => StarDetailModule),
+    forwardRef(() => CommentModule),
   ],
   controllers: [BlogController],
   providers: [BlogService, BlogSearchService],
