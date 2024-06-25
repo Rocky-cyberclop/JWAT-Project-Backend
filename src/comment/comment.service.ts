@@ -1,4 +1,12 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+  LoggerService,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { BlogService } from 'src/blog/blog.service';
@@ -18,6 +26,7 @@ export class CommentService {
     private readonly userService: UserService,
     @Inject(forwardRef(() => BlogService))
     private readonly blogService: BlogService,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async create(userId: number, createCommentDto: CreateCommentDto) {
@@ -28,6 +37,10 @@ export class CommentService {
     comment.blog = plainToClass(Blog, blog);
     comment.content = createCommentDto.content;
     await this.commentRepository.save(comment);
+    this.logger.log(
+      `Calling Create() userId: ${userId}, blogId: ${blog.id}, content: ${createCommentDto.content}`,
+      CommentService.name,
+    );
     return true;
   }
 
@@ -48,7 +61,7 @@ export class CommentService {
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoin('comment.user', 'user')
-      .select(['comment.id','comment.content', 'user.id'])
+      .select(['comment.id', 'comment.content', 'user.id'])
       .where('comment.blogId = :blogId', { blogId })
       .getMany();
     return comments;
