@@ -137,7 +137,7 @@ export class ProjectController {
   }
 
   @Get('findUserIn/:id')
-  @Roles(Role.MANAGER)
+  @Roles(Role.MANAGER, Role.EMPLOYEE)
   findUserInProject(@Param('id') id: number): Promise<ResponseUserDto[]> {
     return this.projectService.findUsersInProject(id);
   }
