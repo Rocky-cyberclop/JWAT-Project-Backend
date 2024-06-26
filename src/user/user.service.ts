@@ -1,4 +1,12 @@
-import { ConflictException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+  LoggerService,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { CreateUserMailDto } from 'src/mail/dto/mail.dto';
@@ -20,6 +28,7 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     private readonly mediaService: MediaService,
     private readonly mailService: MailService,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async findOneByUsername(username: string): Promise<User> {
@@ -50,6 +59,10 @@ export class UserService {
     newUser.userCreateId = adminId;
     try {
       const result = await this.userRepository.save(newUser);
+      this.logger.log(
+        `Calling create() adminId: ${adminId}, userId: ${result.id}`,
+        UserService.name,
+      );
       if (result) {
         const mailDto: CreateUserMailDto = {
           recipients: [{ name: newUser.fullName, address: newUser.email }],
@@ -66,6 +79,7 @@ export class UserService {
       if (error.code === '23505') {
         throw new HttpException(attributeName, HttpStatus.BAD_REQUEST);
       } else {
+        this.logger.error(`Calling create() adminId: ${adminId}`, error, UserService.name);
         throw error;
       }
     }
@@ -100,6 +114,7 @@ export class UserService {
     }
     user.password = changePasswordUserDto.password;
     await this.userRepository.update(id, user);
+    this.logger.log(`Calling changePassword() userId: ${id}`, UserService.name);
     return true;
   }
 
@@ -150,6 +165,7 @@ export class UserService {
     try {
       const { password, ...updateUser } = user;
       await this.userRepository.update(user.id, updateUser);
+      this.logger.log(`Calling update() userId: ${id}`, UserService.name);
       if (files.length !== 0) {
         this.updateAvatar(id, files);
       }
@@ -159,6 +175,7 @@ export class UserService {
       if (error.code === '23505') {
         throw new HttpException(attributeName, HttpStatus.BAD_REQUEST);
       } else {
+        this.logger.error(`Calling update() userId: ${id}`, error, UserService.name);
         throw error;
       }
     }

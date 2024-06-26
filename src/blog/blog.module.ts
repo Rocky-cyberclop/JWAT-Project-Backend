@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { forwardRef, Logger, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BlogMediaModule } from 'src/blog-media/blog-media.module';
 import { CommentModule } from 'src/comment/comment.module';
@@ -26,7 +26,7 @@ import { Blog } from './entities/blog.entity';
     forwardRef(() => CommentModule),
   ],
   controllers: [BlogController],
-  providers: [BlogService, BlogSearchService],
+  providers: [BlogService, BlogSearchService, Logger],
   exports: [BlogService],
 })
 export class BlogModule {}

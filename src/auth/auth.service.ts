@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
@@ -10,6 +10,7 @@ export class AuthService {
     private readonly userService: UserService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   login = async (createAuthDto: CreateAuthDto): Promise<any> => {
@@ -26,6 +27,7 @@ export class AuthService {
         HttpStatus.UNAUTHORIZED,
       );
     }
+    this.logger.log(`Calling login() userId: ${user.id}`, AuthService.name)
     const payload = { id: user.id };
     return this.generateToken(payload);
   };

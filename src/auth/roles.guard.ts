@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable, Logger, LoggerService, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from 'src/decorator/roles.decorator';
 import { Role } from 'src/user/enums/roles.enum';
@@ -9,6 +9,7 @@ export class RolesGuard implements CanActivate {
   constructor(
     private readonly userService: UserService,
     private reflector: Reflector,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -32,6 +33,7 @@ export class RolesGuard implements CanActivate {
     if (!hasRole) {
       throw new UnauthorizedException('User does not have required role');
     }
+    this.logger.log(`Calling canActive() userId: ${id}, role: ${user.role}`, RolesGuard.name);
     return true;
   }
 }

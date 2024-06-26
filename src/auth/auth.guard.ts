@@ -2,7 +2,10 @@ import {
   CanActivate,
   ExecutionContext,
   HttpException,
+  Inject,
   Injectable,
+  Logger,
+  LoggerService,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -17,6 +20,7 @@ export class AuthGuard implements CanActivate {
     private jwtService: JwtService,
     private reflector: Reflector,
     private configService: ConfigService,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -37,6 +41,7 @@ export class AuthGuard implements CanActivate {
         secret: this.configService.get<string>('accessTokenKey'),
       });
       request['user'] = payload;
+      this.logger.log(`Calling canActive() payload: ${payload}`, AuthGuard.name);
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         throw new HttpException(
@@ -47,6 +52,7 @@ export class AuthGuard implements CanActivate {
           419,
         );
       } else {
+        this.logger.error(`Calling canActive()`, error, AuthGuard.name);
         throw new HttpException(
           {
             status: 401,
