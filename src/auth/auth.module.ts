@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { UserModule } from 'src/user/user.module';
@@ -10,6 +10,7 @@ import { RolesGuard } from './roles.guard';
 @Module({
   imports: [UserModule],
   controllers: [AuthController],
-  providers: [AuthService, JwtService, Reflector, AuthGuard, RolesGuard],
+  providers: [AuthService, JwtService, Reflector, Logger, AuthGuard, RolesGuard],
+  exports:[Logger]
 })
 export class AuthModule {}

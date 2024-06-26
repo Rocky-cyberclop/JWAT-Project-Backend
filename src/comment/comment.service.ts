@@ -38,7 +38,7 @@ export class CommentService {
     comment.content = createCommentDto.content;
     await this.commentRepository.save(comment);
     this.logger.log(
-      `Calling Create() userId: ${userId}, blogId: ${blog.id}, content: ${createCommentDto.content}`,
+      `Calling create() userId: ${userId}, blogId: ${blog.id}, content: ${createCommentDto.content}`,
       CommentService.name,
     );
     return true;
@@ -54,6 +54,7 @@ export class CommentService {
       throw new HttpException('Not the owner', HttpStatus.BAD_REQUEST);
     }
     await this.commentRepository.softDelete(id);
+    this.logger.log(`Calling remove() userId: ${userId}, commentId: ${id}`, CommentService.name)
     return true;
   }
 

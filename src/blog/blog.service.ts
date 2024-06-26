@@ -1,4 +1,4 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
@@ -40,6 +40,7 @@ export class BlogService {
     private readonly starDetailService: StarDetailService,
     @Inject(forwardRef(() => CommentService))
     private readonly commentService: CommentService,
+    @Inject(Logger) private readonly logger: LoggerService,
   ) {}
 
   async create(
@@ -54,6 +55,7 @@ export class BlogService {
     blog.content = createBlogDto.content;
     const saveBlog = await this.blogRepository.save(blog);
     this.blogSearchService.indexBlog(blog);
+    this.logger.log(`Calling create() userId: ${userId}, blogId: ${saveBlog.id}`, BlogService.name)
     if (createBlogDto.hashTags && createBlogDto.hashTags?.length !== 0) {
       this.attachHashTag(createBlogDto.hashTags, saveBlog);
     }
@@ -182,6 +184,7 @@ export class BlogService {
     }
     const saveBlog = await this.blogRepository.save(blog);
     this.blogSearchService.update(saveBlog);
+    this.logger.log(`Calling update() userId: ${userId}, blogId: ${id}`, BlogService.name)
     if (updateBlogDto.deleteHashTagIds || updateBlogDto.hashTags) {
       this.updateHashTag(updateBlogDto.deleteHashTagIds, updateBlogDto.hashTags, saveBlog);
     }
@@ -226,6 +229,7 @@ export class BlogService {
     }
     await this.blogRepository.softDelete(id);
     await this.blogSearchService.remove(blog);
+    this.logger.log(`Calling remove() userId: ${userId}, blogId: ${id}`, BlogService.name)
     return true;
   }
 
