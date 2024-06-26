@@ -62,7 +62,7 @@ export class CommentService {
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoin('comment.user', 'user')
-      .select(['comment.id', 'comment.content', 'user.id'])
+      .select(['comment.id', 'comment.content', 'comment.createdAt' ,'user.id'])
       .where('comment.blogId = :blogId', { blogId })
       .getMany();
     return comments;

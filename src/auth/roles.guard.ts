@@ -33,7 +33,6 @@ export class RolesGuard implements CanActivate {
     if (!hasRole) {
       throw new UnauthorizedException('User does not have required role');
     }
-    this.logger.log(`Calling canActive() userId: ${id}, role: ${user.role}`, RolesGuard.name);
     return true;
   }
 }

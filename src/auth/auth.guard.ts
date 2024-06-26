@@ -41,7 +41,6 @@ export class AuthGuard implements CanActivate {
         secret: this.configService.get<string>('accessTokenKey'),
       });
       request['user'] = payload;
-      this.logger.log(`Calling canActive() payload: ${payload}`, AuthGuard.name);
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         throw new HttpException(
