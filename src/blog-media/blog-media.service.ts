@@ -14,10 +14,6 @@ export class BlogMediaService {
     private readonly mediaService: MediaService,
   ) {}
 
-  create(createBlogMediaDto: CreateBlogMediaDto) {
-    return 'This action adds a new blogMedia';
-  }
-
   async findAll(): Promise<BlogMedia[]> {
     return await this.blogMediaRepository.find({
       relations: {
@@ -25,18 +21,6 @@ export class BlogMediaService {
         blog: true,
       },
     });
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} blogMedia`;
-  }
-
-  update(id: number, updateBlogMediaDto: UpdateBlogMediaDto) {
-    return `This action updates a #${id} blogMedia`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} blogMedia`;
   }
 
   async save(blogMedia: BlogMedia): Promise<BlogMedia> {

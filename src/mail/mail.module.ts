@@ -5,7 +5,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { EmailConsumer } from './consumer/email.consumer';
-import { MailController } from './mail.controller';
 import { MailService } from './mail.service';
 @Module({
   imports: [
@@ -39,7 +38,6 @@ import { MailService } from './mail.service';
       }),
     }),
   ],
-  controllers: [MailController],
   providers: [MailService, EmailConsumer],
   exports: [MailService],
 })
