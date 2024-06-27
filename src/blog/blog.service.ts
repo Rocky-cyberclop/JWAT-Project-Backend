@@ -65,12 +65,12 @@ export class BlogService {
     return true;
   }
 
-  async searchForBlogs(text: string, options: IPaginationOptions): Promise<ResponseBlogDtoPag> {
+  async searchForBlogs(text: string, options: IPaginationOptions): Promise<ResponseBlogDtoPag|[]> {
     if (text) {
       const searchResult = await this.blogSearchService.search(text);
       const ids = searchResult.map((result) => result.id);
       if (!ids.length) {
-        return await this.findAllWithPag(options);
+        return [];
       }
       const queryBuilder = this.blogRepository
         .createQueryBuilder('blog')
@@ -86,7 +86,7 @@ export class BlogService {
       blogsDto.meta = blogs.meta;
       return blogsDto;
     }
-    return await this.findAllWithPag(options);
+    return [];
   }
 
   async attachMedia(files: Express.Multer.File[], blog: Blog) {

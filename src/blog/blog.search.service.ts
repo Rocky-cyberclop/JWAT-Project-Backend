@@ -19,7 +19,20 @@ export class BlogSearchService {
     });
   }
 
+  async ensureIndexExists() {
+    try {
+      await this.elasticsearchService.indices.get({ index: this.index });
+    } catch (error) {
+      if (error.meta.statusCode === 404) {
+        await this.elasticsearchService.indices.create({ index: this.index });
+      } else {
+        throw error;
+      }
+    }
+  }
+
   async search(text: string) {
+    await this.ensureIndexExists();
     const result = await this.elasticsearchService.search<any>({
       index: this.index,
       body: {
