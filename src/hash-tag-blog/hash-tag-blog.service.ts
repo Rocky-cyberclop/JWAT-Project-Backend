@@ -18,9 +18,8 @@ export class HashTagBlogService {
     const blogHashTag = await this.hashTagBlogRepository.findOne({
       where: { blog: { id: blogId }, hashTag: { id: hashTagId } },
     });
-    if (!blogHashTag) {
-      throw new Error('BlogHashTag relationship not found');
+    if (blogHashTag) {
+      await this.hashTagBlogRepository.remove(blogHashTag);
     }
-    await this.hashTagBlogRepository.remove(blogHashTag);
   }
 }
