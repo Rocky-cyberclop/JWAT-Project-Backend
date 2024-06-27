@@ -51,7 +51,7 @@ export class BlogController {
     @Query('text') searchString: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(8), ParseIntPipe) limit: number = 8,
-  ): Promise<ResponseBlogDtoPag> {
+  ): Promise<ResponseBlogDtoPag | []> {
     return this.blogService.searchForBlogs(searchString, { limit, page });
   }
 
