@@ -1,12 +1,15 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   HttpException,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UploadedFiles,
   UseInterceptors,
@@ -38,6 +41,14 @@ export class UserController {
   @Get('current')
   currentUser(@Req() req: any): Promise<ResponseUserDto> {
     return this.userService.findOne(req.user.id);
+  }
+
+  @Get('all-user-pag')
+  getAllUserWithPag(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(8), ParseIntPipe) limit: number = 8,
+  ) {
+    return this.userService.findAllUserPag({ limit, page });
   }
 
   @Patch('update')

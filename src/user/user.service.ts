@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
+import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { CreateUserMailDto } from 'src/mail/dto/mail.dto';
 import { MailService } from 'src/mail/mail.service';
 import { Media } from 'src/media/entities/media.entity';
@@ -16,6 +17,7 @@ import { MediaService } from 'src/media/media.service';
 import { Repository, UpdateResult } from 'typeorm';
 import { ChangePasswordUserDto } from './dto/change-password-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ResponseUserDtoPag } from './dto/response-user-pag.dto';
 import { ResponseUserDto } from './dto/response-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -131,7 +133,7 @@ export class UserService {
     let oldMediaType: string;
     if (files.length !== 0) {
       const avatarUser = new Media();
-      const avatars = await this.mediaService.uploadFileQueue(files,'dasdasd');
+      const avatars = await this.mediaService.uploadFileQueue(files, 'dasdasd');
       avatars.forEach((a) => {
         avatarUser.url = a.url;
         avatarUser.cloudId = a.public_id;
@@ -180,5 +182,19 @@ export class UserService {
       }
     }
     return true;
+  }
+
+  async findAllUserPag(options: IPaginationOptions): Promise<ResponseUserDtoPag> {
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.media', 'media')
+      .orderBy('user.id', 'ASC');
+    const users = await paginate<User>(queryBuilder, options);
+    const usersDto = new ResponseUserDtoPag();
+    usersDto.items = users.items.map((user) => {
+      return plainToClass(ResponseUserDto, user);
+    });
+    usersDto.meta = users.meta;
+    return usersDto;
   }
 }
