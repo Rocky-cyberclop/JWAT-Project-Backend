@@ -1,10 +1,14 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
+import { SocketService } from 'src/socket/socket.service';
 import { MediaService } from '../media.service';
 
 @Processor('media')
 export class MediaConsumer {
-  constructor(private readonly mediaService: MediaService) {}
+  constructor(
+    private readonly mediaService: MediaService,
+    private readonly socketService: SocketService,
+  ) {}
 
   @Process('upload-file')
   async uploadFileQueue(job: Job<unknown>) {
@@ -13,6 +17,7 @@ export class MediaConsumer {
       buffer: Buffer.from(file.buffer.data),
     }));
     const result = await this.mediaService.uploadFiles(transformedFiles);
+    this.socketService.sendUploadSuccess(job.data['clientId'], 'Post blog successful');
     return result;
   }
 }

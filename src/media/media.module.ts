@@ -6,9 +6,10 @@ import { MediaConsumer } from './consumer/media.consumer';
 import { Media } from './entities/media.entity';
 import { MediaController } from './media.controller';
 import { MediaService } from './media.service';
+import { SocketModule } from 'src/socket/socket.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Media]), BullModule.registerQueue({ name: 'media' })],
+  imports: [TypeOrmModule.forFeature([Media]), BullModule.registerQueue({ name: 'media' }), SocketModule],
   controllers: [MediaController],
   providers: [MediaService, CloudinaryProvider, MediaConsumer],
   exports: [MediaService],

@@ -6,6 +6,7 @@ import { v2 as cloudinary, UploadApiErrorResponse, UploadApiResponse } from 'clo
 import * as streamifier from 'streamifier';
 import { DeleteResult, Repository } from 'typeorm';
 import { Media } from './entities/media.entity';
+import { CreateBlogDto } from 'src/blog/dto/create-blog.dto';
 
 @Injectable()
 export class MediaService {
@@ -16,12 +17,13 @@ export class MediaService {
   ) {}
 
   async uploadFileQueue(
-    files: Express.Multer.File[],
+    files: Express.Multer.File[], clientId: string
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     const job = await this.mediaQueue.add(
       'upload-file',
       {
         files,
+        clientId
       },
       { removeOnComplete: true },
     );

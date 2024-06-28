@@ -1,4 +1,12 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+  LoggerService,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
@@ -55,17 +63,20 @@ export class BlogService {
     blog.content = createBlogDto.content;
     const saveBlog = await this.blogRepository.save(blog);
     this.blogSearchService.indexBlog(blog);
-    this.logger.log(`Calling create() userId: ${userId}, blogId: ${saveBlog.id}`, BlogService.name)
+    this.logger.log(`Calling create() userId: ${userId}, blogId: ${saveBlog.id}`, BlogService.name);
     if (createBlogDto.hashTags && createBlogDto.hashTags?.length !== 0) {
       this.attachHashTag(createBlogDto.hashTags, saveBlog);
     }
     if (files.length) {
-      this.attachMedia(files, saveBlog);
+      this.attachMedia(files, saveBlog, createBlogDto.clientId);
     }
     return true;
   }
 
-  async searchForBlogs(text: string, options: IPaginationOptions): Promise<ResponseBlogDtoPag|[]> {
+  async searchForBlogs(
+    text: string,
+    options: IPaginationOptions,
+  ): Promise<ResponseBlogDtoPag | []> {
     if (text) {
       const searchResult = await this.blogSearchService.search(text);
       const ids = searchResult.map((result) => result.id);
@@ -89,9 +100,9 @@ export class BlogService {
     return [];
   }
 
-  async attachMedia(files: Express.Multer.File[], blog: Blog) {
-    const medias = await this.mediaService.uploadFileQueue(files);
-    medias.forEach(async (md) => {
+  async attachMedia(files: Express.Multer.File[], blog: Blog, clientId: string) {
+    const medias = await this.mediaService.uploadFileQueue(files, clientId);
+    medias.forEach(async (md: { url: string; public_id: string; resource_type: string }) => {
       const media = new Media();
       media.url = md.url;
       media.cloudId = md.public_id;
@@ -184,12 +195,12 @@ export class BlogService {
     }
     const saveBlog = await this.blogRepository.save(blog);
     this.blogSearchService.update(saveBlog);
-    this.logger.log(`Calling update() userId: ${userId}, blogId: ${id}`, BlogService.name)
+    this.logger.log(`Calling update() userId: ${userId}, blogId: ${id}`, BlogService.name);
     if (updateBlogDto.deleteHashTagIds || updateBlogDto.hashTags) {
       this.updateHashTag(updateBlogDto.deleteHashTagIds, updateBlogDto.hashTags, saveBlog);
     }
     if (updateBlogDto.deleteMediaIds || files.length !== 0) {
-      this.updateMedia(updateBlogDto.deleteMediaIds, files, saveBlog);
+      this.updateMedia(updateBlogDto.deleteMediaIds, files, saveBlog, updateBlogDto.clientId);
     }
     return true;
   }
@@ -205,14 +216,19 @@ export class BlogService {
     }
   }
 
-  async updateMedia(deleteMediaIds: number[], files: Express.Multer.File[], blog: Blog) {
+  async updateMedia(
+    deleteMediaIds: number[],
+    files: Express.Multer.File[],
+    blog: Blog,
+    clientId: string,
+  ) {
     if (deleteMediaIds) {
       deleteMediaIds.forEach((md) => {
         this.blogMediaService.deleteByBlogIdAndMediaId(blog.id, md);
       });
     }
     if (files.length !== 0) {
-      this.attachMedia(files, blog);
+      this.attachMedia(files, blog, clientId);
     }
   }
 
@@ -229,7 +245,7 @@ export class BlogService {
     }
     await this.blogRepository.softDelete(id);
     await this.blogSearchService.remove(blog);
-    this.logger.log(`Calling remove() userId: ${userId}, blogId: ${id}`, BlogService.name)
+    this.logger.log(`Calling remove() userId: ${userId}, blogId: ${id}`, BlogService.name);
     return true;
   }
 
