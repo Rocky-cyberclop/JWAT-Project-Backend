@@ -29,4 +29,8 @@ export class UpdateBlogDto {
   @IsNumber({}, { each: true })
   @Type(() => Number)
   deleteMediaIds: number[];
+
+  @IsNotEmpty()
+  @IsString()
+  clientId: string;
 }

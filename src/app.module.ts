@@ -26,6 +26,7 @@ import { SearchModule } from './search/search.module';
 import { StarDetailModule } from './star-detail/star-detail.module';
 import { UserProjectModule } from './user-project/user-project.module';
 import { UserModule } from './user/user.module';
+import { SocketModule } from './socket/socket.module';
 require('dotenv').config();
 
 @Module({
@@ -101,6 +102,7 @@ require('dotenv').config();
     BlogMediaModule,
     MailModule,
     SearchModule,
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [

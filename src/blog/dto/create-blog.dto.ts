@@ -13,4 +13,8 @@ export class CreateBlogDto {
   @IsArray()
   @IsString({ each: true })
   hashTags: string[];
+
+  @IsNotEmpty()
+  @IsString()
+  clientId: string;
 }
