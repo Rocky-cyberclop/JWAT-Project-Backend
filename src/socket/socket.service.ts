@@ -6,6 +6,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { ResponseCommentDto } from 'src/comment/dto/response-comment.dto';
 
 @WebSocketGateway({
   cors: {
@@ -30,8 +31,17 @@ export class SocketService {
     this.server.to(clientId).emit('uploadSuccess', message);
   }
 
+  syncComment(blogId: string, comment: ResponseCommentDto) {
+    this.server.to(blogId).emit('receiveComment', comment);
+  }
+
   @SubscribeMessage('register')
   handleRegister(@MessageBody() data: { clientId: string }, @ConnectedSocket() client: Socket) {
     client.join(data.clientId);
+  }
+
+  @SubscribeMessage('joinBlog')
+  handleJoinBlog(@MessageBody() data: { blogId: string }, @ConnectedSocket() client: Socket) {
+    client.join(data.blogId);
   }
 }

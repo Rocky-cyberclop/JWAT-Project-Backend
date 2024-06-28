@@ -11,12 +11,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { BlogService } from 'src/blog/blog.service';
 import { Blog } from 'src/blog/entities/blog.entity';
+import { SocketService } from 'src/socket/socket.service';
 import { User } from 'src/user/entities/user.entity';
 import { Role } from 'src/user/enums/roles.enum';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Comment } from './entities/comment.entity';
+import { ResponseCommentDto } from './dto/response-comment.dto';
 
 @Injectable()
 export class CommentService {
@@ -27,6 +29,7 @@ export class CommentService {
     @Inject(forwardRef(() => BlogService))
     private readonly blogService: BlogService,
     @Inject(Logger) private readonly logger: LoggerService,
+    private readonly socketService: SocketService,
   ) {}
 
   async create(userId: number, createCommentDto: CreateCommentDto) {
@@ -36,7 +39,11 @@ export class CommentService {
     comment.user = plainToClass(User, user);
     comment.blog = plainToClass(Blog, blog);
     comment.content = createCommentDto.content;
-    await this.commentRepository.save(comment);
+    const cm = await this.commentRepository.save(comment);
+    this.socketService.syncComment(
+      createCommentDto.blogId.toString() + 'socket',
+      plainToClass(ResponseCommentDto, cm),
+    );
     this.logger.log(
       `Calling create() userId: ${userId}, blogId: ${blog.id}, content: ${createCommentDto.content}`,
       CommentService.name,
@@ -54,7 +61,7 @@ export class CommentService {
       throw new HttpException('Not the owner', HttpStatus.BAD_REQUEST);
     }
     await this.commentRepository.softDelete(id);
-    this.logger.log(`Calling remove() userId: ${userId}, commentId: ${id}`, CommentService.name)
+    this.logger.log(`Calling remove() userId: ${userId}, commentId: ${id}`, CommentService.name);
     return true;
   }
 
@@ -62,7 +69,7 @@ export class CommentService {
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoin('comment.user', 'user')
-      .select(['comment.id', 'comment.content', 'comment.createdAt' ,'user.id'])
+      .select(['comment.id', 'comment.content', 'comment.createdAt', 'user.id'])
       .where('comment.blogId = :blogId', { blogId })
       .getMany();
     return comments;
