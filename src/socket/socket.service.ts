@@ -6,7 +6,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CreateCommentDto } from 'src/comment/dto/create-comment.dto';
 import { ResponseCommentDto } from 'src/comment/dto/response-comment.dto';
 
 @WebSocketGateway({
