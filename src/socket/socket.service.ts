@@ -6,6 +6,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { CreateCommentDto } from 'src/comment/dto/create-comment.dto';
 import { ResponseCommentDto } from 'src/comment/dto/response-comment.dto';
 
 @WebSocketGateway({
@@ -45,9 +46,7 @@ export class SocketService {
     client.join(data.blogId);
   }
 
-  @SubscribeMessage('comment')
-  handleComment(@MessageBody() data: { message: string; id: number }) {
-    // console.log(data.message);
-    this.server.emit(`comment/${data.id}`, data);
+  syncCommentByHao(blogId: string, comment: ResponseCommentDto) {
+    this.server.emit(`comment/${blogId}`, comment);
   }
 }
