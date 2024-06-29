@@ -34,4 +34,10 @@ export class SocketService {
   handleRegister(@MessageBody() data: { clientId: string }, @ConnectedSocket() client: Socket) {
     client.join(data.clientId);
   }
+
+  @SubscribeMessage('comment')
+  handleComment(@MessageBody() data: { message: string; id: number }) {
+    // console.log(data.message);
+    this.server.emit(`comment/${data.id}`, data);
+  }
 }
