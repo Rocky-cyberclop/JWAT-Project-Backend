@@ -6,7 +6,7 @@ export class ResponseCommentDto {
   id: number;
   content: string;
   createdAt: Date;
-  @Transform(({ value }) => ({ id: value.id }))
+  @Transform(({ value }) => ({ id: value.id, media: value.media.url, fullName: value.fullName }))
   user: User;
   @Exclude()
   deletedAt: Date;
