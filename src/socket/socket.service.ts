@@ -44,4 +44,8 @@ export class SocketService {
   handleJoinBlog(@MessageBody() data: { blogId: string }, @ConnectedSocket() client: Socket) {
     client.join(data.blogId);
   }
+
+  syncCommentByHao(blogId: string, comment: ResponseCommentDto) {
+    this.server.emit(`comment/${blogId}`, comment);
+  }
 }
