@@ -17,27 +17,9 @@ export class MediaService {
 
   async uploadFileQueue(
     files: Express.Multer.File[],
-    clientId: string,
-    blogId: number,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     const job = await this.mediaQueue.add(
       'upload-file',
-      {
-        files,
-        clientId,
-        blogId,
-      },
-      { removeOnComplete: true },
-    );
-    const queue = await this.mediaQueue.getJob(job.id);
-    return await queue.finished();
-  }
-
-  async uploadAvatarQueue(
-    files: Express.Multer.File[],
-  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
-    const job = await this.mediaQueue.add(
-      'upload-avatar',
       {
         files,
       },

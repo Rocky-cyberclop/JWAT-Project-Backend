@@ -133,7 +133,7 @@ export class UserService {
     let oldMediaType: string;
     if (files.length !== 0) {
       const avatarUser = new Media();
-      const avatars = await this.mediaService.uploadAvatarQueue(files);
+      const avatars = await this.mediaService.uploadFileQueue(files);
       avatars.forEach((a) => {
         avatarUser.url = a.url;
         avatarUser.cloudId = a.public_id;
