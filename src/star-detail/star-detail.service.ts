@@ -18,7 +18,7 @@ export class StarDetailService {
     private readonly blogService: BlogService,
   ) {}
 
-  async createOrRemove(userId: number, blogId: number) {
+  async createOrRemove(userId: number, blogId: number): Promise<void> {
     const blog = await this.blogService.findOne(blogId);
     const user = await this.userService.findOne(userId);
     const star = await this.starDetailRepository.findOne({
@@ -34,7 +34,7 @@ export class StarDetailService {
     }
   }
 
-  async getStarOfBlog(blogId: number) {
+  async getStarOfBlog(blogId: number): Promise<StarDetail[]> {
     const stars = this.starDetailRepository
       .createQueryBuilder('star_detail')
       .leftJoin('star_detail.user', 'user')

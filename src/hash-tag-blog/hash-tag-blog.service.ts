@@ -14,7 +14,7 @@ export class HashTagBlogService {
     return await this.hashTagBlogRepository.save(hashTagBlog);
   }
 
-  async deleteByBlogIdAndHashTagId(blogId: number, hashTagId: number) {
+  async deleteByBlogIdAndHashTagId(blogId: number, hashTagId: number): Promise<void> {
     const blogHashTag = await this.hashTagBlogRepository.findOne({
       where: { blog: { id: blogId }, hashTag: { id: hashTagId } },
     });

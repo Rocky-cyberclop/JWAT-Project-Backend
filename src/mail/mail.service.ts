@@ -7,7 +7,7 @@ import { MutateProjectMailDto } from './dto/mail-info-mutate-project.dto';
 export class MailService {
   constructor(@InjectQueue('send-email') private emailQueue: Queue) {}
 
-  async sendEmail(mailDto: CreateUserMailDto) {
+  async sendEmail(mailDto: CreateUserMailDto): Promise<void> {
     const { recipients, subject, username, password } = mailDto;
     await this.emailQueue.add(
       'create-user',
@@ -21,7 +21,7 @@ export class MailService {
     );
   }
 
-  async sendEmailAddToProject(mailDto: MutateProjectMailDto) {
+  async sendEmailAddToProject(mailDto: MutateProjectMailDto): Promise<void> {
     const { recipients, subject, project } = mailDto;
     await this.emailQueue.add(
       'add-user-to-project',

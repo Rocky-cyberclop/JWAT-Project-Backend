@@ -8,13 +8,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @Public()
   @Post('login')
-  login(@Body() createAuthDto: CreateAuthDto): Promise<any> {
+  login(@Body() createAuthDto: CreateAuthDto): Promise<Tokens> {
     return this.authService.login(createAuthDto);
   }
 
   @Public()
   @Post('refresh-token')
-  refreshToken(@Body() { refreshToken }): Promise<any> {
+  refreshToken(@Body() { refreshToken }): Promise<Tokens> {
     return this.authService.refreshToken(refreshToken);
   }
 }

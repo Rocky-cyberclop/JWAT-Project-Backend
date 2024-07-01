@@ -18,7 +18,7 @@ export class HashTagService {
     return this.hashTagRepository.findOneBy({ hashTagName });
   }
 
-  async getHashTagByBlogId(blogId: number) {
+  async getHashTagByBlogId(blogId: number): Promise<HashTag[]> {
     return this.hashTagRepository.find({
       where: {
         hashTagBlogs: {

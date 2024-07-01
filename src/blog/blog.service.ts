@@ -100,8 +100,8 @@ export class BlogService {
     return [];
   }
 
-  async attachMedia(files: Express.Multer.File[], blog: Blog, clientId: string) {
-    const medias = await this.mediaService.uploadFileQueue(files, clientId);
+  async attachMedia(files: Express.Multer.File[], blog: Blog, clientId: string): Promise<void> {
+    const medias = await this.mediaService.uploadFileQueue(files, clientId, blog.id);
     medias.forEach(async (md: { url: string; public_id: string; resource_type: string }) => {
       const media = new Media();
       media.url = md.url;
@@ -115,7 +115,7 @@ export class BlogService {
     });
   }
 
-  async attachHashTag(arrayHashTag: string[], blog: Blog) {
+  async attachHashTag(arrayHashTag: string[], blog: Blog): Promise<void> {
     arrayHashTag.forEach(async (ht) => {
       const hashTagExist = await this.hashTagService.findByName(ht);
       const hashTagBlog = new HashTagBlog();
@@ -147,7 +147,7 @@ export class BlogService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<Blog> {
     return await this.blogRepository.findOne({
       where: { id },
       relations: {
@@ -205,7 +205,7 @@ export class BlogService {
     return true;
   }
 
-  async updateHashTag(deleteHashTagIds: number[], hashTags: string[], blog: Blog) {
+  async updateHashTag(deleteHashTagIds: number[], hashTags: string[], blog: Blog): Promise<void> {
     if (deleteHashTagIds) {
       deleteHashTagIds.forEach((ht) => {
         this.hashTagBlogService.deleteByBlogIdAndHashTagId(blog.id, ht);
@@ -221,7 +221,7 @@ export class BlogService {
     files: Express.Multer.File[],
     blog: Blog,
     clientId: string,
-  ) {
+  ): Promise<void> {
     if (deleteMediaIds) {
       deleteMediaIds.forEach((md) => {
         this.blogMediaService.deleteByBlogIdAndMediaId(blog.id, md);

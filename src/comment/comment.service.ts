@@ -17,8 +17,8 @@ import { Role } from 'src/user/enums/roles.enum';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { Comment } from './entities/comment.entity';
 import { ResponseCommentDto } from './dto/response-comment.dto';
+import { Comment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentService {
@@ -84,7 +84,7 @@ export class CommentService {
     return true;
   }
 
-  async getCommentByBlogId(blogId: number) {
+  async getCommentByBlogId(blogId: number): Promise<Comment[]> {
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoin('comment.user', 'user')
