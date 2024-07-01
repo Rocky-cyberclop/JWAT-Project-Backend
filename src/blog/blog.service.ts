@@ -20,6 +20,7 @@ import { HashTag } from 'src/hash-tag/entities/hash-tag.entity';
 import { HashTagService } from 'src/hash-tag/hash-tag.service';
 import { Media } from 'src/media/entities/media.entity';
 import { MediaService } from 'src/media/media.service';
+import { SocketService } from 'src/socket/socket.service';
 import { StarDetail } from 'src/star-detail/entities/star-detail.entity';
 import { StarDetailService } from 'src/star-detail/star-detail.service';
 import { User } from 'src/user/entities/user.entity';
@@ -49,6 +50,7 @@ export class BlogService {
     @Inject(forwardRef(() => CommentService))
     private readonly commentService: CommentService,
     @Inject(Logger) private readonly logger: LoggerService,
+    private readonly socketService: SocketService,
   ) {}
 
   async create(
@@ -101,7 +103,7 @@ export class BlogService {
   }
 
   async attachMedia(files: Express.Multer.File[], blog: Blog, clientId: string): Promise<void> {
-    const medias = await this.mediaService.uploadFileQueue(files, clientId, blog.id);
+    const medias = await this.mediaService.uploadFileQueue(files);
     medias.forEach(async (md: { url: string; public_id: string; resource_type: string }) => {
       const media = new Media();
       media.url = md.url;
@@ -111,7 +113,10 @@ export class BlogService {
       const blogMedia = new BlogMedia();
       blogMedia.blog = blog;
       blogMedia.media = saveMedia;
-      await this.blogMediaService.save(blogMedia);
+      const result = await this.blogMediaService.save(blogMedia);
+      if (result) {
+        this.socketService.sendUploadSuccess(clientId, blog.id);
+      }
     });
   }
 
@@ -223,9 +228,11 @@ export class BlogService {
     clientId: string,
   ): Promise<void> {
     if (deleteMediaIds) {
-      deleteMediaIds.forEach((md) => {
-        this.blogMediaService.deleteByBlogIdAndMediaId(blog.id, md);
-      });
+      await Promise.all(
+        deleteMediaIds.map(async (md) => {
+          await this.blogMediaService.deleteByBlogIdAndMediaId(blog.id, md);
+        }),
+      );
     }
     if (files.length !== 0) {
       this.attachMedia(files, blog, clientId);

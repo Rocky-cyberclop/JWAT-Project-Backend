@@ -12,6 +12,7 @@ import { BlogController } from './blog.controller';
 import { BlogSearchService } from './blog.search.service';
 import { BlogService } from './blog.service';
 import { Blog } from './entities/blog.entity';
+import { SocketModule } from 'src/socket/socket.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Blog } from './entities/blog.entity';
     HashTagModule,
     HashTagBlogModule,
     SearchModule,
+    SocketModule,
     forwardRef(() => StarDetailModule),
     forwardRef(() => CommentModule),
   ],

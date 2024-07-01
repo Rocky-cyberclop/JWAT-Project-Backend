@@ -11,7 +11,6 @@ import { MediaService } from './media.service';
   imports: [
     TypeOrmModule.forFeature([Media]),
     BullModule.registerQueue({ name: 'media' }),
-    SocketModule,
   ],
   providers: [MediaService, CloudinaryProvider, MediaConsumer],
   exports: [MediaService],
