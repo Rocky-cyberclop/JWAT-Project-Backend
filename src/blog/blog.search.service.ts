@@ -1,3 +1,4 @@
+import { IndexResponse, UpdateByQueryResponse } from '@elastic/elasticsearch/lib/api/types';
 import { Injectable } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { BlogSearchBody } from './dto/blog-index-search.dto';
@@ -8,7 +9,7 @@ export class BlogSearchService {
   private index = 'blogs';
   constructor(private readonly elasticsearchService: ElasticsearchService) {}
 
-  async indexBlog(blog: Blog) {
+  async indexBlog(blog: Blog): Promise<IndexResponse> {
     return this.elasticsearchService.index<BlogSearchBody>({
       index: this.index,
       body: {
@@ -19,7 +20,7 @@ export class BlogSearchService {
     });
   }
 
-  async ensureIndexExists() {
+  async ensureIndexExists(): Promise<void> {
     try {
       await this.elasticsearchService.indices.get({ index: this.index });
     } catch (error) {
@@ -31,7 +32,7 @@ export class BlogSearchService {
     }
   }
 
-  async search(text: string) {
+  async search(text: string): Promise<any[]> {
     await this.ensureIndexExists();
     const result = await this.elasticsearchService.search<any>({
       index: this.index,
@@ -48,7 +49,7 @@ export class BlogSearchService {
     return hits.map((item) => item._source);
   }
 
-  async update(blog: Blog) {
+  async update(blog: Blog): Promise<UpdateByQueryResponse> {
     const newBody: BlogSearchBody = {
       id: blog.id,
       title: blog.title,
@@ -74,7 +75,7 @@ export class BlogSearchService {
     });
   }
 
-  async remove(blog: Blog) {
+  async remove(blog: Blog): Promise<void> {
     this.elasticsearchService.deleteByQuery({
       index: this.index,
       body: {

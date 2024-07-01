@@ -19,6 +19,7 @@ import { Roles } from 'src/decorator/roles.decorator';
 import { FileInterceptor } from 'src/interceptor/media.interceptor';
 import { ChangePasswordUserDto } from './dto/change-password-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ResponseUserDtoPag } from './dto/response-user-pag.dto';
 import { ResponseUserDto } from './dto/response-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from './enums/roles.enum';
@@ -47,7 +48,7 @@ export class UserController {
   getAllUserWithPag(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(8), ParseIntPipe) limit: number = 8,
-  ) {
+  ): Promise<ResponseUserDtoPag> {
     return this.userService.findAllUserPag({ limit, page });
   }
 

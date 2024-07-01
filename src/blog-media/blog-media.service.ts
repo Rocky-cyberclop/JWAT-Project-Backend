@@ -27,7 +27,7 @@ export class BlogMediaService {
     return await this.blogMediaRepository.save(blogMedia);
   }
 
-  async deleteByBlogIdAndMediaId(blogId: number, mediaId: number) {
+  async deleteByBlogIdAndMediaId(blogId: number, mediaId: number):Promise<void> {
     const blogMedia = await this.blogMediaRepository.findOne({
       where: { blog: { id: blogId }, media: { id: mediaId } },
       relations: { media: true },

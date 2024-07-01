@@ -16,7 +16,7 @@ export class CommentController {
 
   @Roles(Role.EMPLOYEE, Role.MANAGER)
   @Post()
-  create(@Req() req: any, @Body() createCommentDto: CreateCommentDto) {
+  create(@Req() req: any, @Body() createCommentDto: CreateCommentDto): Promise<CreateCommentDto> {
     return this.commentService.create(req.user.id, createCommentDto);
   }
 }

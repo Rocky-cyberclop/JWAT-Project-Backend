@@ -9,7 +9,7 @@ export class StarDetailController {
 
   @Roles(Role.MANAGER, Role.EMPLOYEE)
   @Get(':blogId')
-  async createOrRemove(@Req() req: any, @Param('blogId') blogId: number) {
+  async createOrRemove(@Req() req: any, @Param('blogId') blogId: number): Promise<boolean> {
     await this.starDetailService.createOrRemove(req.user.id, blogId);
     return true;
   }

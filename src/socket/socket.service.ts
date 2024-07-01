@@ -27,8 +27,8 @@ export class SocketService {
     console.log('Client disconnected:', client.id);
   }
 
-  sendUploadSuccess(clientId: string, message: string) {
-    this.server.to(clientId).emit('uploadSuccess', message);
+  sendUploadSuccess(clientId: string, id: number) {
+    this.server.to(clientId).emit('uploadSuccess', id);
   }
 
   syncComment(blogId: string, comment: ResponseCommentDto) {

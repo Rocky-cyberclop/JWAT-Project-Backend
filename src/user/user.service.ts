@@ -133,7 +133,7 @@ export class UserService {
     let oldMediaType: string;
     if (files.length !== 0) {
       const avatarUser = new Media();
-      const avatars = await this.mediaService.uploadFileQueue(files, 'dasdasd');
+      const avatars = await this.mediaService.uploadAvatarQueue(files);
       avatars.forEach((a) => {
         avatarUser.url = a.url;
         avatarUser.cloudId = a.public_id;
@@ -156,7 +156,11 @@ export class UserService {
     return true;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto, files: Express.Multer.File[]) {
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+    files: Express.Multer.File[],
+  ): Promise<boolean> {
     const user = await this.userRepository.findOne({
       where: { id },
     });
