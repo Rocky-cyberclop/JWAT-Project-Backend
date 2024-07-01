@@ -112,7 +112,7 @@ export class ProjectController {
   }
 
   @Get('document/:id/search')
-  @Roles(Role.MANAGER)
+  @Roles(Role.MANAGER, Role.EMPLOYEE)
   getDocumentByName(@Param('id') id: number, @Query('name') name: string): Promise<Document[]> {
     return this.projectService.getDocumentByName(id, name);
   }
