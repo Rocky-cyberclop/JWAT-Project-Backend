@@ -7,22 +7,10 @@ import { MediaService } from '../media.service';
 export class MediaConsumer {
   constructor(
     private readonly mediaService: MediaService,
-    private readonly socketService: SocketService,
   ) {}
 
   @Process('upload-file')
   async uploadFileQueue(job: Job<unknown>) {
-    const transformedFiles = job.data['files'].map((file) => ({
-      ...file,
-      buffer: Buffer.from(file.buffer.data),
-    }));
-    const result = await this.mediaService.uploadFiles(transformedFiles);
-    this.socketService.sendUploadSuccess(job.data['clientId'], job.data['blogId']);
-    return result;
-  }
-
-  @Process('upload-avatar')
-  async uploadAvatarQueue(job: Job<unknown>) {
     const transformedFiles = job.data['files'].map((file) => ({
       ...file,
       buffer: Buffer.from(file.buffer.data),
