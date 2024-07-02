@@ -32,25 +32,6 @@ export class CommentService {
     private readonly socketService: SocketService,
   ) {}
 
-  // async create(userId: number, createCommentDto: CreateCommentDto) {
-  //   const user = await this.userService.findOne(userId);
-  //   const blog = await this.blogService.findOne(createCommentDto.blogId);
-  //   const comment = new Comment();
-  //   comment.user = plainToClass(User, user);
-  //   comment.blog = plainToClass(Blog, blog);
-  //   comment.content = createCommentDto.content;
-  //   const cm = await this.commentRepository.save(comment);
-  //   this.socketService.syncComment(
-  //     createCommentDto.blogId.toString() + 'socket',
-  //     plainToClass(ResponseCommentDto, cm),
-  //   );
-  //   this.logger.log(
-  //     `Calling create() userId: ${userId}, blogId: ${blog.id}, content: ${createCommentDto.content}`,
-  //     CommentService.name,
-  //   );
-  //   return true;
-  // }
-
   async create(userId: number, createCommentDto: CreateCommentDto): Promise<CreateCommentDto> {
     const user = await this.userService.findOne(userId);
     const blog = await this.blogService.findOne(createCommentDto.blogId);
